@@ -1,5 +1,6 @@
-package com.campus.service
+package com.campus.service.data.remote
 
+import com.campus.service.BuildConfig
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
@@ -12,10 +13,10 @@ object SupabaseProvider {
             supabaseUrl = BuildConfig.SUPABASE_URL,
             supabaseKey = BuildConfig.SUPABASE_KEY
         ) {
-            install(Auth)
-            install(Postgrest)
-            install(Realtime)
-            install(Storage)
+            install(Auth.Companion)
+            install(Postgrest.Companion)
+            install(Realtime.Companion)
+            install(Storage.Companion)
         }
     }
 }
