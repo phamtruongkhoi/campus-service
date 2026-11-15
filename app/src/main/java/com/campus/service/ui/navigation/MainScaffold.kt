@@ -3,9 +3,7 @@ package com.campus.service.ui.navigation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -14,7 +12,6 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -33,6 +30,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.campus.service.data.model.Profile
 import com.campus.service.data.model.UserRole
+import com.campus.service.ui.profile.ProfileScreen
+import com.campus.service.ui.profile.ProfileViewModel
 
 private data class TabItem(
     val title: String,
@@ -62,7 +61,11 @@ private fun tabsFor(role: UserRole): List<TabItem> = when (role) {
 }
 
 @Composable
-fun MainScaffold(profile: Profile, onSignOut: () -> Unit) {
+fun MainScaffold(
+    profile: Profile,
+    profileViewModel: ProfileViewModel,
+    onSignOut: () -> Unit
+) {
     val role = profile.userRole
     val tabs = remember(role) { tabsFor(role) }
     var selected by rememberSaveable { mutableIntStateOf(0) }
@@ -88,7 +91,11 @@ fun MainScaffold(profile: Profile, onSignOut: () -> Unit) {
         ) {
             val tab = tabs[selected.coerceIn(0, tabs.lastIndex)]
             if (tab.isProfile) {
-                ProfilePlaceholder(profile, onSignOut)
+                ProfileScreen(
+                    profile = profile,
+                    vm = profileViewModel,
+                    onSignOut = onSignOut
+                )
             } else {
                 Column(
                     modifier = Modifier
@@ -102,27 +109,5 @@ fun MainScaffold(profile: Profile, onSignOut: () -> Unit) {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ProfilePlaceholder(profile: Profile, onSignOut: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Cá nhân", style = MaterialTheme.typography.headlineMedium)
-        Spacer(Modifier.height(16.dp))
-        Text("Họ tên: ${profile.fullName ?: "(chưa có)"}")
-        Text("Email: ${profile.email ?: ""}")
-        Text("Vai trò: ${profile.userRole.displayName}")
-        if (profile.userRole == UserRole.STUDENT) {
-            Text("MSSV: ${profile.studentId ?: "(chưa có)"}")
-        }
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = onSignOut) { Text("Đăng xuất") }
     }
 }
