@@ -27,12 +27,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.campus.service.data.model.Ticket
+import com.campus.service.data.model.TicketEvent
 import com.campus.service.data.model.TicketStatus
 import com.campus.service.ui.common.MessageText
 import com.campus.service.ui.common.StatusBadge
+import com.campus.service.ui.common.StatusTimeline
 import com.campus.service.ui.common.StorageImage
 import com.campus.service.util.formatDateTime
 
@@ -40,6 +43,8 @@ import com.campus.service.util.formatDateTime
 fun TicketHistoryScreen(userId: String, vm: TicketHistoryViewModel) {
     // Tải lại mỗi lần mở tab Lịch sử
     LaunchedEffect(userId) { vm.refresh(userId) }
+    // Lắng nghe realtime trong lúc màn hình này đang hiển thị
+    LaunchedEffect(userId) { vm.observeChanges() }
 
     val state by vm.state.collectAsState()
     val selected = state.selected
@@ -47,7 +52,12 @@ fun TicketHistoryScreen(userId: String, vm: TicketHistoryViewModel) {
     BackHandler(enabled = selected != null) { vm.closeDetail() }
 
     if (selected != null) {
-        TicketDetail(ticket = selected, onBack = { vm.closeDetail() })
+        TicketDetail(
+            ticket = selected,
+            events = state.events,
+            live = state.live,
+            onBack = { vm.closeDetail() }
+        )
         return
     }
 
@@ -57,6 +67,7 @@ fun TicketHistoryScreen(userId: String, vm: TicketHistoryViewModel) {
             .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
         Text("Lịch sử phiếu", style = MaterialTheme.typography.headlineMedium)
+        LiveIndicator(state.live)
         Spacer(Modifier.height(8.dp))
 
         // Bộ lọc theo trạng thái
@@ -81,7 +92,7 @@ fun TicketHistoryScreen(userId: String, vm: TicketHistoryViewModel) {
 
         MessageText(error = state.error, info = null)
 
-        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedButton(onClick = { vm.refresh(userId) }, enabled = !state.loading) {
                 Text("Làm mới")
             }
@@ -109,6 +120,15 @@ fun TicketHistoryScreen(userId: String, vm: TicketHistoryViewModel) {
 }
 
 @Composable
+private fun LiveIndicator(live: Boolean) {
+    Text(
+        text = if (live) "● Đang cập nhật trực tiếp" else "○ Chưa kết nối cập nhật trực tiếp",
+        style = MaterialTheme.typography.labelMedium,
+        color = if (live) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    )
+}
+
+@Composable
 private fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
     Card(
         modifier = Modifier
@@ -119,7 +139,7 @@ private fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     ticket.title,
@@ -130,14 +150,22 @@ private fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
                 StatusBadge(ticket.statusEnum)
             }
             Spacer(Modifier.height(4.dp))
-            Text("${ticket.areaLabel} • ${ticket.categoryLabel}", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "${ticket.areaLabel} • ${ticket.categoryLabel}",
+                style = MaterialTheme.typography.bodyMedium
+            )
             Text(formatDateTime(ticket.createdAt), style = MaterialTheme.typography.bodySmall)
         }
     }
 }
 
 @Composable
-private fun TicketDetail(ticket: Ticket, onBack: () -> Unit) {
+private fun TicketDetail(
+    ticket: Ticket,
+    events: List<TicketEvent>,
+    live: Boolean,
+    onBack: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -147,6 +175,7 @@ private fun TicketDetail(ticket: Ticket, onBack: () -> Unit) {
         TextButton(onClick = onBack) { Text("< Quay lại danh sách") }
 
         Text(ticket.title, style = MaterialTheme.typography.headlineSmall)
+        LiveIndicator(live)
         Spacer(Modifier.height(8.dp))
         StatusBadge(ticket.statusEnum)
         Spacer(Modifier.height(16.dp))
@@ -157,6 +186,11 @@ private fun TicketDetail(ticket: Ticket, onBack: () -> Unit) {
         InfoRow("Gửi lúc", formatDateTime(ticket.createdAt))
         InfoRow("Dự kiến xong (ETA)", formatDateTime(ticket.eta))
         InfoRow("Cập nhật lần cuối", formatDateTime(ticket.updatedAt))
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+        Text("Tiến trình xử lý", style = MaterialTheme.typography.titleSmall)
+        Spacer(Modifier.height(4.dp))
+        StatusTimeline(events = events, current = ticket.statusEnum)
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
         Text("Mô tả", style = MaterialTheme.typography.titleSmall)
