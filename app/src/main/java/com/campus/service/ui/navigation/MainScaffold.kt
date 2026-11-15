@@ -32,31 +32,35 @@ import com.campus.service.data.model.Profile
 import com.campus.service.data.model.UserRole
 import com.campus.service.ui.profile.ProfileScreen
 import com.campus.service.ui.profile.ProfileViewModel
+import com.campus.service.ui.student.CreateTicketScreen
+import com.campus.service.ui.student.CreateTicketViewModel
+
+private enum class TabKind { PLACEHOLDER, PROFILE, CREATE_TICKET }
 
 private data class TabItem(
     val title: String,
     val icon: ImageVector,
-    val isProfile: Boolean = false
+    val kind: TabKind = TabKind.PLACEHOLDER
 )
 
 private fun tabsFor(role: UserRole): List<TabItem> = when (role) {
     UserRole.STUDENT -> listOf(
         TabItem("Trang chủ", Icons.Filled.Home),
-        TabItem("Tạo phiếu", Icons.Filled.Add),
+        TabItem("Tạo phiếu", Icons.Filled.Add, TabKind.CREATE_TICKET),
         TabItem("Lịch sử", Icons.Filled.DateRange),
-        TabItem("Cá nhân", Icons.Filled.Person, isProfile = true)
+        TabItem("Cá nhân", Icons.Filled.Person, TabKind.PROFILE)
     )
     UserRole.ADMIN -> listOf(
         TabItem("Tổng quan", Icons.Filled.Home),
         TabItem("Điều phối", Icons.Filled.Build),
         TabItem("Lịch sử", Icons.Filled.DateRange),
-        TabItem("Cá nhân", Icons.Filled.Person, isProfile = true)
+        TabItem("Cá nhân", Icons.Filled.Person, TabKind.PROFILE)
     )
     UserRole.TECHNICIAN -> listOf(
         TabItem("Radar", Icons.Filled.Search),
         TabItem("Công việc", Icons.Filled.Build),
         TabItem("Lịch sử", Icons.Filled.DateRange),
-        TabItem("Cá nhân", Icons.Filled.Person, isProfile = true)
+        TabItem("Cá nhân", Icons.Filled.Person, TabKind.PROFILE)
     )
 }
 
@@ -64,6 +68,7 @@ private fun tabsFor(role: UserRole): List<TabItem> = when (role) {
 fun MainScaffold(
     profile: Profile,
     profileViewModel: ProfileViewModel,
+    createTicketViewModel: CreateTicketViewModel,
     onSignOut: () -> Unit
 ) {
     val role = profile.userRole
@@ -90,14 +95,14 @@ fun MainScaffold(
                 .fillMaxSize()
         ) {
             val tab = tabs[selected.coerceIn(0, tabs.lastIndex)]
-            if (tab.isProfile) {
-                ProfileScreen(
+            when (tab.kind) {
+                TabKind.PROFILE -> ProfileScreen(
                     profile = profile,
                     vm = profileViewModel,
                     onSignOut = onSignOut
                 )
-            } else {
-                Column(
+                TabKind.CREATE_TICKET -> CreateTicketScreen(vm = createTicketViewModel)
+                TabKind.PLACEHOLDER -> Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(24.dp),
