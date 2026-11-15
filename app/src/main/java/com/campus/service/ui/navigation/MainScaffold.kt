@@ -34,8 +34,10 @@ import com.campus.service.ui.profile.ProfileScreen
 import com.campus.service.ui.profile.ProfileViewModel
 import com.campus.service.ui.student.CreateTicketScreen
 import com.campus.service.ui.student.CreateTicketViewModel
+import com.campus.service.ui.student.TicketHistoryScreen
+import com.campus.service.ui.student.TicketHistoryViewModel
 
-private enum class TabKind { PLACEHOLDER, PROFILE, CREATE_TICKET }
+private enum class TabKind { PLACEHOLDER, PROFILE, CREATE_TICKET, STUDENT_HISTORY }
 
 private data class TabItem(
     val title: String,
@@ -47,7 +49,7 @@ private fun tabsFor(role: UserRole): List<TabItem> = when (role) {
     UserRole.STUDENT -> listOf(
         TabItem("Trang chủ", Icons.Filled.Home),
         TabItem("Tạo phiếu", Icons.Filled.Add, TabKind.CREATE_TICKET),
-        TabItem("Lịch sử", Icons.Filled.DateRange),
+        TabItem("Lịch sử", Icons.Filled.DateRange, TabKind.STUDENT_HISTORY),
         TabItem("Cá nhân", Icons.Filled.Person, TabKind.PROFILE)
     )
     UserRole.ADMIN -> listOf(
@@ -69,6 +71,7 @@ fun MainScaffold(
     profile: Profile,
     profileViewModel: ProfileViewModel,
     createTicketViewModel: CreateTicketViewModel,
+    ticketHistoryViewModel: TicketHistoryViewModel,
     onSignOut: () -> Unit
 ) {
     val role = profile.userRole
@@ -102,6 +105,10 @@ fun MainScaffold(
                     onSignOut = onSignOut
                 )
                 TabKind.CREATE_TICKET -> CreateTicketScreen(vm = createTicketViewModel)
+                TabKind.STUDENT_HISTORY -> TicketHistoryScreen(
+                    userId = profile.id,
+                    vm = ticketHistoryViewModel
+                )
                 TabKind.PLACEHOLDER -> Column(
                     modifier = Modifier
                         .fillMaxSize()
