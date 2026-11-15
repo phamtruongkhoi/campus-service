@@ -34,6 +34,8 @@ import com.campus.service.ui.admin.AdminDashboardScreen
 import com.campus.service.ui.admin.AdminDashboardViewModel
 import com.campus.service.ui.admin.AdminDispatchScreen
 import com.campus.service.ui.admin.AdminDispatchViewModel
+import com.campus.service.ui.admin.AdminHistoryScreen
+import com.campus.service.ui.admin.AdminHistoryViewModel
 import com.campus.service.ui.profile.ProfileScreen
 import com.campus.service.ui.profile.ProfileViewModel
 import com.campus.service.ui.student.CreateTicketScreen
@@ -45,7 +47,7 @@ import com.campus.service.ui.student.TicketHistoryViewModel
 
 private enum class TabKind {
     PLACEHOLDER, PROFILE, CREATE_TICKET, STUDENT_HISTORY, STUDENT_HOME,
-    ADMIN_DASHBOARD, ADMIN_DISPATCH
+    ADMIN_DASHBOARD, ADMIN_DISPATCH, ADMIN_HISTORY
 }
 
 private data class TabItem(
@@ -64,7 +66,7 @@ private fun tabsFor(role: UserRole): List<TabItem> = when (role) {
     UserRole.ADMIN -> listOf(
         TabItem("Tổng quan", Icons.Filled.Home, TabKind.ADMIN_DASHBOARD),
         TabItem("Điều phối", Icons.Filled.Build, TabKind.ADMIN_DISPATCH),
-        TabItem("Lịch sử", Icons.Filled.DateRange),
+        TabItem("Lịch sử", Icons.Filled.DateRange, TabKind.ADMIN_HISTORY),
         TabItem("Cá nhân", Icons.Filled.Person, TabKind.PROFILE)
     )
     UserRole.TECHNICIAN -> listOf(
@@ -84,6 +86,7 @@ fun MainScaffold(
     homeViewModel: HomeViewModel,
     adminDashboardViewModel: AdminDashboardViewModel,
     adminDispatchViewModel: AdminDispatchViewModel,
+    adminHistoryViewModel: AdminHistoryViewModel,
     onSignOut: () -> Unit
 ) {
     val role = profile.userRole
@@ -124,6 +127,7 @@ fun MainScaffold(
                 TabKind.STUDENT_HOME -> HomeScreen(vm = homeViewModel)
                 TabKind.ADMIN_DASHBOARD -> AdminDashboardScreen(vm = adminDashboardViewModel)
                 TabKind.ADMIN_DISPATCH -> AdminDispatchScreen(vm = adminDispatchViewModel)
+                TabKind.ADMIN_HISTORY -> AdminHistoryScreen(vm = adminHistoryViewModel)
                 TabKind.PLACEHOLDER -> Column(
                     modifier = Modifier
                         .fillMaxSize()

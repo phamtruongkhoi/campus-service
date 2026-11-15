@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.campus.service.ui.admin.AdminDashboardViewModel
 import com.campus.service.ui.admin.AdminDispatchViewModel
+import com.campus.service.ui.admin.AdminHistoryViewModel
 import com.campus.service.ui.auth.AuthScreen
 import com.campus.service.ui.auth.AuthViewModel
 import com.campus.service.ui.navigation.MainScaffold
@@ -31,6 +32,7 @@ class MainActivity : ComponentActivity() {
     private val homeViewModel: HomeViewModel by viewModels()
     private val adminDashboardViewModel: AdminDashboardViewModel by viewModels()
     private val adminDispatchViewModel: AdminDispatchViewModel by viewModels()
+    private val adminHistoryViewModel: AdminHistoryViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +56,7 @@ class MainActivity : ComponentActivity() {
                         homeViewModel = homeViewModel,
                         adminDashboardViewModel = adminDashboardViewModel,
                         adminDispatchViewModel = adminDispatchViewModel,
+                        adminHistoryViewModel = adminHistoryViewModel,
                         onSignOut = authViewModel::signOut
                     )
                     else -> AuthScreen(state = state, vm = authViewModel)
