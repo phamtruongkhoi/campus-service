@@ -16,21 +16,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.campus.service.ui.auth.AuthScreen
+import com.campus.service.ui.auth.AuthViewModel
 
 class MainActivity : ComponentActivity() {
+
     private val authViewModel: AuthViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
                 val state by authViewModel.state.collectAsState()
+
                 if (state.signedInEmail == null) {
-                    AuthScreen(
-                        state = state,
-                        onSignIn = authViewModel::signIn,
-                        onSignUp = authViewModel::signUp,
-                        onClearMessages = authViewModel::clearMessages
-                    )
+                    AuthScreen(state = state, vm = authViewModel)
                 } else {
                     Column(
                         modifier = Modifier
