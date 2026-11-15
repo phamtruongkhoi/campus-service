@@ -22,6 +22,7 @@ import com.campus.service.ui.profile.ProfileViewModel
 import com.campus.service.ui.student.CreateTicketViewModel
 import com.campus.service.ui.student.HomeViewModel
 import com.campus.service.ui.student.TicketHistoryViewModel
+import com.campus.service.ui.technician.RadarViewModel
 import com.campus.service.ui.technician.TechJobsViewModel
 
 class MainActivity : ComponentActivity() {
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
     private val adminDispatchViewModel: AdminDispatchViewModel by viewModels()
     private val adminHistoryViewModel: AdminHistoryViewModel by viewModels()
     private val techJobsViewModel: TechJobsViewModel by viewModels()
+    private val radarViewModel: RadarViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +62,7 @@ class MainActivity : ComponentActivity() {
                         adminDispatchViewModel = adminDispatchViewModel,
                         adminHistoryViewModel = adminHistoryViewModel,
                         techJobsViewModel = techJobsViewModel,
+                        radarViewModel = radarViewModel,
                         onSignOut = authViewModel::signOut
                     )
                     else -> AuthScreen(state = state, vm = authViewModel)
