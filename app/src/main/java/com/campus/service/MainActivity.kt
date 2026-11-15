@@ -15,10 +15,12 @@ import androidx.compose.ui.Modifier
 import com.campus.service.ui.auth.AuthScreen
 import com.campus.service.ui.auth.AuthViewModel
 import com.campus.service.ui.navigation.MainScaffold
+import com.campus.service.ui.profile.ProfileViewModel
 
 class MainActivity : ComponentActivity() {
 
     private val authViewModel: AuthViewModel by viewModels()
+    private val profileViewModel: ProfileViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +38,7 @@ class MainActivity : ComponentActivity() {
                     }
                     profile != null -> MainScaffold(
                         profile = profile,
+                        profileViewModel = profileViewModel,
                         onSignOut = authViewModel::signOut
                     )
                     else -> AuthScreen(state = state, vm = authViewModel)
