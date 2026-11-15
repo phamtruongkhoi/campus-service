@@ -44,10 +44,12 @@ import com.campus.service.ui.student.HomeScreen
 import com.campus.service.ui.student.HomeViewModel
 import com.campus.service.ui.student.TicketHistoryScreen
 import com.campus.service.ui.student.TicketHistoryViewModel
+import com.campus.service.ui.technician.TechJobsScreen
+import com.campus.service.ui.technician.TechJobsViewModel
 
 private enum class TabKind {
     PLACEHOLDER, PROFILE, CREATE_TICKET, STUDENT_HISTORY, STUDENT_HOME,
-    ADMIN_DASHBOARD, ADMIN_DISPATCH, ADMIN_HISTORY
+    ADMIN_DASHBOARD, ADMIN_DISPATCH, ADMIN_HISTORY, TECH_JOBS
 }
 
 private data class TabItem(
@@ -71,7 +73,7 @@ private fun tabsFor(role: UserRole): List<TabItem> = when (role) {
     )
     UserRole.TECHNICIAN -> listOf(
         TabItem("Radar", Icons.Filled.Search),
-        TabItem("Công việc", Icons.Filled.Build),
+        TabItem("Công việc", Icons.Filled.Build, TabKind.TECH_JOBS),
         TabItem("Lịch sử", Icons.Filled.DateRange),
         TabItem("Cá nhân", Icons.Filled.Person, TabKind.PROFILE)
     )
@@ -87,6 +89,7 @@ fun MainScaffold(
     adminDashboardViewModel: AdminDashboardViewModel,
     adminDispatchViewModel: AdminDispatchViewModel,
     adminHistoryViewModel: AdminHistoryViewModel,
+    techJobsViewModel: TechJobsViewModel,
     onSignOut: () -> Unit
 ) {
     val role = profile.userRole
@@ -128,6 +131,7 @@ fun MainScaffold(
                 TabKind.ADMIN_DASHBOARD -> AdminDashboardScreen(vm = adminDashboardViewModel)
                 TabKind.ADMIN_DISPATCH -> AdminDispatchScreen(vm = adminDispatchViewModel)
                 TabKind.ADMIN_HISTORY -> AdminHistoryScreen(vm = adminHistoryViewModel)
+                TabKind.TECH_JOBS -> TechJobsScreen(userId = profile.id, vm = techJobsViewModel)
                 TabKind.PLACEHOLDER -> Column(
                     modifier = Modifier
                         .fillMaxSize()
