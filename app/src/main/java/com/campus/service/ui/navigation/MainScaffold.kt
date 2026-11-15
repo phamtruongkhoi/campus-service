@@ -34,10 +34,14 @@ import com.campus.service.ui.profile.ProfileScreen
 import com.campus.service.ui.profile.ProfileViewModel
 import com.campus.service.ui.student.CreateTicketScreen
 import com.campus.service.ui.student.CreateTicketViewModel
+import com.campus.service.ui.student.HomeScreen
+import com.campus.service.ui.student.HomeViewModel
 import com.campus.service.ui.student.TicketHistoryScreen
 import com.campus.service.ui.student.TicketHistoryViewModel
 
-private enum class TabKind { PLACEHOLDER, PROFILE, CREATE_TICKET, STUDENT_HISTORY }
+private enum class TabKind {
+    PLACEHOLDER, PROFILE, CREATE_TICKET, STUDENT_HISTORY, STUDENT_HOME
+}
 
 private data class TabItem(
     val title: String,
@@ -47,7 +51,7 @@ private data class TabItem(
 
 private fun tabsFor(role: UserRole): List<TabItem> = when (role) {
     UserRole.STUDENT -> listOf(
-        TabItem("Trang chủ", Icons.Filled.Home),
+        TabItem("Trang chủ", Icons.Filled.Home, TabKind.STUDENT_HOME),
         TabItem("Tạo phiếu", Icons.Filled.Add, TabKind.CREATE_TICKET),
         TabItem("Lịch sử", Icons.Filled.DateRange, TabKind.STUDENT_HISTORY),
         TabItem("Cá nhân", Icons.Filled.Person, TabKind.PROFILE)
@@ -72,6 +76,7 @@ fun MainScaffold(
     profileViewModel: ProfileViewModel,
     createTicketViewModel: CreateTicketViewModel,
     ticketHistoryViewModel: TicketHistoryViewModel,
+    homeViewModel: HomeViewModel,
     onSignOut: () -> Unit
 ) {
     val role = profile.userRole
@@ -109,6 +114,7 @@ fun MainScaffold(
                     userId = profile.id,
                     vm = ticketHistoryViewModel
                 )
+                TabKind.STUDENT_HOME -> HomeScreen(vm = homeViewModel)
                 TabKind.PLACEHOLDER -> Column(
                     modifier = Modifier
                         .fillMaxSize()

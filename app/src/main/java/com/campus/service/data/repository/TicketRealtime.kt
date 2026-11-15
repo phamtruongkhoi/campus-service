@@ -15,31 +15,33 @@ import kotlinx.coroutines.launch
 
 object TicketRealtime {
 
+    /** Tín hiệu khi bảng tickets hoặc ticket_events thay đổi (phiếu của người dùng). */
+    fun changes(): Flow<Unit> = tableChanges("tickets", "ticket_events")
+
+    /** Tín hiệu khi bảng tin công khai (public_incidents) thay đổi. */
+    fun incidentChanges(): Flow<Unit> = tableChanges("public_incidents")
+
     /**
-     * Phát một tín hiệu (Unit) khi đăng ký kênh thành công và mỗi khi bảng tickets
-     * hoặc ticket_events thay đổi. Người dùng chỉ nhận sự kiện của dòng họ được phép
-     * SELECT theo RLS. Hủy collect thì kênh được gỡ.
+     * Phát một tín hiệu (Unit) khi đăng ký kênh thành công và mỗi khi một trong các bảng
+     * thay đổi. Người dùng chỉ nhận sự kiện của dòng họ được phép SELECT theo RLS.
+     * Hủy collect thì kênh được gỡ.
      */
-    fun changes(): Flow<Unit> = callbackFlow {
+    private fun tableChanges(vararg tableNames: String): Flow<Unit> = callbackFlow {
         val client = SupabaseProvider.client
-        val channel = client.channel("ticket-changes-${UUID.randomUUID()}")
+        val channel = client.channel("changes-${UUID.randomUUID()}")
 
-        val ticketChanges = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
-            table = "tickets"
+        val jobs = tableNames.map { tableName ->
+            val changeFlow = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
+                table = tableName
+            }
+            launch { changeFlow.collect { trySend(Unit) } }
         }
-        val eventChanges = channel.postgresChangeFlow<PostgresAction>(schema = "public") {
-            table = "ticket_events"
-        }
-
-        val ticketJob = launch { ticketChanges.collect { trySend(Unit) } }
-        val eventJob = launch { eventChanges.collect { trySend(Unit) } }
 
         channel.subscribe(blockUntilSubscribed = true)
         trySend(Unit)
 
         awaitClose {
-            ticketJob.cancel()
-            eventJob.cancel()
+            jobs.forEach { it.cancel() }
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     client.realtime.removeChannel(channel)
