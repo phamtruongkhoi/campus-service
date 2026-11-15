@@ -2,10 +2,13 @@ package com.campus.service.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.campus.service.data.model.Profile
 import com.campus.service.data.remote.SupabaseProvider
+import com.campus.service.data.repository.ProfileRepository
 import io.github.jan.supabase.auth.OtpType
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,10 +22,11 @@ enum class AuthStep {
 }
 
 data class AuthUiState(
+    val initializing: Boolean = false,
     val loading: Boolean = false,
     val error: String? = null,
     val info: String? = null,
-    val signedInEmail: String? = null,
+    val profile: Profile? = null,
     val step: AuthStep = AuthStep.LOGIN,
     val pendingEmail: String = ""
 )
@@ -31,12 +35,48 @@ class AuthViewModel : ViewModel() {
 
     private val auth = SupabaseProvider.client.auth
 
-    private val _state = MutableStateFlow(
-        AuthUiState(signedInEmail = auth.currentUserOrNull()?.email)
-    )
+    private val _state = MutableStateFlow(AuthUiState(initializing = true))
     val state: StateFlow<AuthUiState> = _state.asStateFlow()
 
+    // true trong lúc đang đặt lại mật khẩu bằng OTP: không tự coi là đã đăng nhập
+    private var recovering = false
+
+    init {
+        viewModelScope.launch {
+            auth.sessionStatus.collect { status ->
+                when (status) {
+                    is SessionStatus.Authenticated -> {
+                        if (!recovering) loadProfile()
+                    }
+                    is SessionStatus.NotAuthenticated -> {
+                        _state.update { it.copy(initializing = false, profile = null) }
+                    }
+                    else -> Unit
+                }
+            }
+        }
+    }
+
+    private suspend fun loadProfile() {
+        try {
+            val profile = ProfileRepository.getMyProfile()
+            _state.update {
+                it.copy(initializing = false, loading = false, profile = profile, error = null)
+            }
+        } catch (e: Exception) {
+            _state.update {
+                it.copy(
+                    initializing = false,
+                    loading = false,
+                    profile = null,
+                    error = "Không tải được hồ sơ người dùng: ${e.message}"
+                )
+            }
+        }
+    }
+
     fun goTo(step: AuthStep) {
+        if (step == AuthStep.LOGIN || step == AuthStep.REGISTER) recovering = false
         _state.update { it.copy(step = step, error = null, info = null) }
     }
 
@@ -57,13 +97,11 @@ class AuthViewModel : ViewModel() {
                     this.email = email.trim()
                     this.password = password
                 }
-                _state.update {
-                    it.copy(loading = false, signedInEmail = auth.currentUserOrNull()?.email)
-                }
+                // Hồ sơ sẽ được tải khi sessionStatus báo Authenticated
+                _state.update { it.copy(loading = false) }
             } catch (e: Exception) {
                 val m = e.message.orEmpty()
                 if (m.contains("Email not confirmed", ignoreCase = true)) {
-                    // Tài khoản chưa xác thực: gửi lại mã và chuyển sang màn nhập OTP
                     _state.update {
                         it.copy(
                             loading = false,
@@ -93,11 +131,11 @@ class AuthViewModel : ViewModel() {
                         put("student_id", studentId.trim())
                     }
                 }
-                val signedIn = auth.currentUserOrNull()?.email
-                _state.update {
-                    if (signedIn != null) {
-                        it.copy(loading = false, signedInEmail = signedIn)
-                    } else {
+                if (auth.currentUserOrNull() != null) {
+                    // Project không bật xác nhận email: đã có phiên, collector sẽ tải hồ sơ
+                    _state.update { it.copy(loading = false) }
+                } else {
+                    _state.update {
                         it.copy(
                             loading = false,
                             step = AuthStep.VERIFY_SIGNUP,
@@ -121,9 +159,7 @@ class AuthViewModel : ViewModel() {
                     email = _state.value.pendingEmail,
                     token = code.trim()
                 )
-                _state.update {
-                    it.copy(loading = false, signedInEmail = auth.currentUserOrNull()?.email)
-                }
+                _state.update { it.copy(loading = false) }
             } catch (e: Exception) {
                 _state.update { it.copy(loading = false, error = translate(e)) }
             }
@@ -151,6 +187,7 @@ class AuthViewModel : ViewModel() {
             _state.update { it.copy(loading = true, error = null, info = null) }
             try {
                 auth.resetPasswordForEmail(email.trim())
+                recovering = true
                 _state.update {
                     it.copy(
                         loading = false,
@@ -187,7 +224,6 @@ class AuthViewModel : ViewModel() {
                     email = _state.value.pendingEmail,
                     token = code.trim()
                 )
-                // Đã có phiên tạm thời để đổi mật khẩu; chưa coi là đã đăng nhập
                 _state.update { it.copy(loading = false, step = AuthStep.FORGOT_NEW_PASSWORD) }
             } catch (e: Exception) {
                 _state.update { it.copy(loading = false, error = translate(e)) }
@@ -204,6 +240,7 @@ class AuthViewModel : ViewModel() {
                     auth.signOut()
                 } catch (_: Exception) {
                 }
+                recovering = false
                 _state.update {
                     AuthUiState(
                         step = AuthStep.LOGIN,
@@ -223,6 +260,7 @@ class AuthViewModel : ViewModel() {
                 auth.signOut()
             } catch (_: Exception) {
             }
+            recovering = false
             _state.update { AuthUiState() }
         }
     }
