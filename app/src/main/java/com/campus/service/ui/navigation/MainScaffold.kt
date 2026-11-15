@@ -30,6 +30,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.campus.service.data.model.Profile
 import com.campus.service.data.model.UserRole
+import com.campus.service.ui.admin.AdminDashboardScreen
+import com.campus.service.ui.admin.AdminDashboardViewModel
 import com.campus.service.ui.profile.ProfileScreen
 import com.campus.service.ui.profile.ProfileViewModel
 import com.campus.service.ui.student.CreateTicketScreen
@@ -40,7 +42,7 @@ import com.campus.service.ui.student.TicketHistoryScreen
 import com.campus.service.ui.student.TicketHistoryViewModel
 
 private enum class TabKind {
-    PLACEHOLDER, PROFILE, CREATE_TICKET, STUDENT_HISTORY, STUDENT_HOME
+    PLACEHOLDER, PROFILE, CREATE_TICKET, STUDENT_HISTORY, STUDENT_HOME, ADMIN_DASHBOARD
 }
 
 private data class TabItem(
@@ -57,7 +59,7 @@ private fun tabsFor(role: UserRole): List<TabItem> = when (role) {
         TabItem("Cá nhân", Icons.Filled.Person, TabKind.PROFILE)
     )
     UserRole.ADMIN -> listOf(
-        TabItem("Tổng quan", Icons.Filled.Home),
+        TabItem("Tổng quan", Icons.Filled.Home, TabKind.ADMIN_DASHBOARD),
         TabItem("Điều phối", Icons.Filled.Build),
         TabItem("Lịch sử", Icons.Filled.DateRange),
         TabItem("Cá nhân", Icons.Filled.Person, TabKind.PROFILE)
@@ -77,6 +79,7 @@ fun MainScaffold(
     createTicketViewModel: CreateTicketViewModel,
     ticketHistoryViewModel: TicketHistoryViewModel,
     homeViewModel: HomeViewModel,
+    adminDashboardViewModel: AdminDashboardViewModel,
     onSignOut: () -> Unit
 ) {
     val role = profile.userRole
@@ -115,6 +118,7 @@ fun MainScaffold(
                     vm = ticketHistoryViewModel
                 )
                 TabKind.STUDENT_HOME -> HomeScreen(vm = homeViewModel)
+                TabKind.ADMIN_DASHBOARD -> AdminDashboardScreen(vm = adminDashboardViewModel)
                 TabKind.PLACEHOLDER -> Column(
                     modifier = Modifier
                         .fillMaxSize()
