@@ -36,11 +36,19 @@ data class CategoryRef(val name: String)
 @Serializable
 data class ImageRef(val path: String)
 
+/** Thông tin người (embed từ profiles): người gửi phiếu hoặc kỹ thuật viên được giao. */
+@Serializable
+data class PersonRef(
+    @SerialName("full_name") val fullName: String? = null,
+    @SerialName("student_id") val studentId: String? = null
+)
+
 /** Phiếu khi đọc, kèm khu vực, loại lỗi và ảnh (embed của PostgREST). */
 @Serializable
 data class Ticket(
     val id: String,
     @SerialName("created_by") val createdBy: String,
+    @SerialName("assigned_to") val assignedTo: String? = null,
     val title: String,
     val description: String? = null,
     val status: String = "open",
@@ -53,10 +61,21 @@ data class Ticket(
     @SerialName("updated_at") val updatedAt: String? = null,
     val areas: AreaRef? = null,
     val categories: CategoryRef? = null,
-    @SerialName("ticket_images") val images: List<ImageRef> = emptyList()
+    @SerialName("ticket_images") val images: List<ImageRef> = emptyList(),
+    /** Chỉ có khi truy vấn của Admin/Kỹ thuật viên (embed profiles). */
+    val creator: PersonRef? = null,
+    val assignee: PersonRef? = null
 ) {
     val statusEnum: TicketStatus get() = TicketStatus.from(status)
     val priorityEnum: TicketPriority get() = TicketPriority.from(priority)
     val areaLabel: String get() = areas?.label ?: "—"
     val categoryLabel: String get() = categories?.name ?: "—"
+    val creatorLabel: String
+        get() {
+            val name = creator?.fullName?.ifBlank { null } ?: "(chưa có tên)"
+            val mssv = creator?.studentId?.ifBlank { null }
+            return if (mssv != null) "$name - $mssv" else name
+        }
+    val assigneeLabel: String
+        get() = assignee?.fullName?.ifBlank { null } ?: if (assignedTo == null) "Chưa phân công" else "(không rõ tên)"
 }
