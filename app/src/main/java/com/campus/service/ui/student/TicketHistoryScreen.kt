@@ -21,18 +21,25 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.campus.service.data.model.Ticket
 import com.campus.service.data.model.TicketEvent
 import com.campus.service.data.model.TicketStatus
+import com.campus.service.ui.common.LiveIndicator
+import com.campus.service.ui.common.LoadingButton
 import com.campus.service.ui.common.MessageText
 import com.campus.service.ui.common.StatusBadge
 import com.campus.service.ui.common.StatusTimeline
@@ -56,6 +63,10 @@ fun TicketHistoryScreen(userId: String, vm: TicketHistoryViewModel) {
             ticket = selected,
             events = state.events,
             live = state.live,
+            accepting = state.accepting,
+            actionError = state.actionError,
+            info = state.info,
+            onAccept = { rating, feedback -> vm.accept(selected, rating, feedback) },
             onBack = { vm.closeDetail() }
         )
         return
@@ -120,15 +131,6 @@ fun TicketHistoryScreen(userId: String, vm: TicketHistoryViewModel) {
 }
 
 @Composable
-private fun LiveIndicator(live: Boolean) {
-    Text(
-        text = if (live) "● Đang cập nhật trực tiếp" else "○ Chưa kết nối cập nhật trực tiếp",
-        style = MaterialTheme.typography.labelMedium,
-        color = if (live) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-    )
-}
-
-@Composable
 private fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
     Card(
         modifier = Modifier
@@ -155,6 +157,14 @@ private fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(formatDateTime(ticket.createdAt), style = MaterialTheme.typography.bodySmall)
+            if (ticket.statusEnum == TicketStatus.RESOLVED) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Đã khắc phục xong, bấm để nghiệm thu",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }
@@ -164,6 +174,10 @@ private fun TicketDetail(
     ticket: Ticket,
     events: List<TicketEvent>,
     live: Boolean,
+    accepting: Boolean,
+    actionError: String?,
+    info: String?,
+    onAccept: (Int, String) -> Unit,
     onBack: () -> Unit
 ) {
     Column(
@@ -186,6 +200,20 @@ private fun TicketDetail(
         InfoRow("Gửi lúc", formatDateTime(ticket.createdAt))
         InfoRow("Dự kiến xong (ETA)", formatDateTime(ticket.eta))
         InfoRow("Cập nhật lần cuối", formatDateTime(ticket.updatedAt))
+
+        // Nghiệm thu: chỉ khi phiếu đã khắc phục và chưa có đánh giá
+        if (ticket.statusEnum == TicketStatus.RESOLVED) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+            AcceptanceForm(
+                key = ticket.id,
+                accepting = accepting,
+                error = actionError,
+                onAccept = onAccept
+            )
+        } else if (info != null) {
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+            MessageText(error = null, info = info)
+        }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
         Text("Tiến trình xử lý", style = MaterialTheme.typography.titleSmall)
@@ -218,6 +246,54 @@ private fun TicketDetail(
             if (!ticket.feedback.isNullOrBlank()) Text(ticket.feedback)
         }
     }
+}
+
+@Composable
+private fun AcceptanceForm(
+    key: String,
+    accepting: Boolean,
+    error: String?,
+    onAccept: (Int, String) -> Unit
+) {
+    var rating by remember(key) { mutableIntStateOf(0) }
+    var feedback by remember(key) { mutableStateOf("") }
+
+    Text("Nghiệm thu", style = MaterialTheme.typography.titleMedium)
+    Text(
+        "Sự cố đã được báo khắc phục. Vui lòng đánh giá để đóng phiếu.",
+        style = MaterialTheme.typography.bodyMedium
+    )
+    Spacer(Modifier.height(8.dp))
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        (1..5).forEach { star ->
+            FilterChip(
+                selected = rating == star,
+                onClick = { rating = star },
+                enabled = !accepting,
+                label = { Text("$star ★") }
+            )
+        }
+    }
+    Spacer(Modifier.height(8.dp))
+    OutlinedTextField(
+        value = feedback,
+        onValueChange = { feedback = it },
+        label = { Text("Nhận xét (không bắt buộc)") },
+        enabled = !accepting,
+        minLines = 2,
+        modifier = Modifier.fillMaxWidth()
+    )
+    Spacer(Modifier.height(8.dp))
+    MessageText(error = error, info = null)
+    if (rating == 0) {
+        Text("Chọn số sao để nghiệm thu.", style = MaterialTheme.typography.labelMedium)
+        Spacer(Modifier.height(4.dp))
+    }
+    LoadingButton(
+        text = "Nghiệm thu và đóng phiếu",
+        loading = accepting,
+        onClick = { onAccept(rating, feedback) }
+    )
 }
 
 @Composable

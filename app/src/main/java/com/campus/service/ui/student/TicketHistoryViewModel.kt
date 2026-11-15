@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.campus.service.data.model.Ticket
 import com.campus.service.data.model.TicketEvent
 import com.campus.service.data.model.TicketStatus
+import com.campus.service.data.repository.TicketAcceptanceRepository
 import com.campus.service.data.repository.TicketEventRepository
 import com.campus.service.data.repository.TicketRealtime
 import com.campus.service.data.repository.TicketRepository
@@ -26,7 +27,10 @@ data class TicketHistoryUiState(
     val selectedId: String? = null,
     val filter: TicketStatus? = null,
     val events: List<TicketEvent> = emptyList(),
-    val live: Boolean = false
+    val live: Boolean = false,
+    val accepting: Boolean = false,
+    val actionError: String? = null,
+    val info: String? = null
 ) {
     val selected: Ticket? get() = tickets.firstOrNull { it.id == selectedId }
     val visible: List<Ticket>
@@ -105,11 +109,41 @@ class TicketHistoryViewModel : ViewModel() {
     }
 
     fun openDetail(ticket: Ticket) {
-        _state.update { it.copy(selectedId = ticket.id, events = emptyList()) }
+        _state.update {
+            it.copy(selectedId = ticket.id, events = emptyList(), actionError = null, info = null)
+        }
         viewModelScope.launch { loadEvents(ticket.id) }
     }
 
     fun closeDetail() {
-        _state.update { it.copy(selectedId = null, events = emptyList()) }
+        _state.update {
+            it.copy(selectedId = null, events = emptyList(), actionError = null, info = null)
+        }
+    }
+
+    /** Nghiệm thu: đánh giá sao + nhận xét, đóng phiếu (Resolved -> Closed). */
+    fun accept(ticket: Ticket, rating: Int, feedback: String) {
+        if (rating !in 1..5) {
+            _state.update { it.copy(actionError = "Vui lòng chọn số sao từ 1 đến 5.") }
+            return
+        }
+        viewModelScope.launch {
+            _state.update { it.copy(accepting = true, actionError = null, info = null) }
+            try {
+                TicketAcceptanceRepository.acceptAndClose(
+                    ticketId = ticket.id,
+                    rating = rating,
+                    feedback = feedback.trim().ifBlank { null }
+                )
+                reload()
+                _state.update { it.copy(info = "Đã nghiệm thu và đóng phiếu. Cảm ơn bạn!") }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _state.update { it.copy(actionError = "Không đóng được phiếu: ${e.message}") }
+            } finally {
+                _state.update { it.copy(accepting = false) }
+            }
+        }
     }
 }
