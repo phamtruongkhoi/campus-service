@@ -17,6 +17,7 @@ import com.campus.service.ui.auth.AuthViewModel
 import com.campus.service.ui.navigation.MainScaffold
 import com.campus.service.ui.profile.ProfileViewModel
 import com.campus.service.ui.student.CreateTicketViewModel
+import com.campus.service.ui.student.HomeViewModel
 import com.campus.service.ui.student.TicketHistoryViewModel
 
 class MainActivity : ComponentActivity() {
@@ -25,6 +26,7 @@ class MainActivity : ComponentActivity() {
     private val profileViewModel: ProfileViewModel by viewModels()
     private val createTicketViewModel: CreateTicketViewModel by viewModels()
     private val ticketHistoryViewModel: TicketHistoryViewModel by viewModels()
+    private val homeViewModel: HomeViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +47,7 @@ class MainActivity : ComponentActivity() {
                         profileViewModel = profileViewModel,
                         createTicketViewModel = createTicketViewModel,
                         ticketHistoryViewModel = ticketHistoryViewModel,
+                        homeViewModel = homeViewModel,
                         onSignOut = authViewModel::signOut
                     )
                     else -> AuthScreen(state = state, vm = authViewModel)
