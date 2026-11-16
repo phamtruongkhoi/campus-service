@@ -6,6 +6,7 @@ import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.storage.Storage
+import kotlin.time.Duration.Companion.seconds
 
 object SupabaseProvider {
     val client by lazy {
@@ -13,10 +14,11 @@ object SupabaseProvider {
             supabaseUrl = BuildConfig.SUPABASE_URL,
             supabaseKey = BuildConfig.SUPABASE_KEY
         ) {
-            install(Auth.Companion)
-            install(Postgrest.Companion)
-            install(Realtime.Companion)
-            install(Storage.Companion)
+            requestTimeout = 30.seconds
+            install(Auth)
+            install(Postgrest)
+            install(Realtime)
+            install(Storage)
         }
     }
 }
