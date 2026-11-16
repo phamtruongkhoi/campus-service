@@ -17,8 +17,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +41,7 @@ import com.campus.service.ui.admin.AdminDispatchScreen
 import com.campus.service.ui.admin.AdminDispatchViewModel
 import com.campus.service.ui.admin.AdminHistoryScreen
 import com.campus.service.ui.admin.AdminHistoryViewModel
+import com.campus.service.ui.notification.NotificationViewModel
 import com.campus.service.ui.profile.ProfileScreen
 import com.campus.service.ui.profile.ProfileViewModel
 import com.campus.service.ui.student.CreateTicketScreen
@@ -96,13 +102,27 @@ fun MainScaffold(
     techJobsViewModel: TechJobsViewModel,
     radarViewModel: RadarViewModel,
     techHistoryViewModel: TechHistoryViewModel,
+    notificationViewModel: NotificationViewModel,
     onSignOut: () -> Unit
 ) {
     val role = profile.userRole
     val tabs = remember(role) { tabsFor(role) }
     var selected by rememberSaveable { mutableIntStateOf(0) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Thông báo trong app: bắt đầu theo dõi khi vào màn hình chính, dừng khi thoát
+    LaunchedEffect(profile.id) { notificationViewModel.watch(profile) }
+    DisposableEffect(profile.id) {
+        onDispose { notificationViewModel.stop() }
+    }
+    LaunchedEffect(Unit) {
+        notificationViewModel.events.collect { message ->
+            snackbarHostState.showSnackbar(message, duration = SnackbarDuration.Short)
+        }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             NavigationBar {
                 tabs.forEachIndexed { index, tab ->

@@ -7,7 +7,6 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -18,6 +17,7 @@ import com.campus.service.ui.admin.AdminHistoryViewModel
 import com.campus.service.ui.auth.AuthScreen
 import com.campus.service.ui.auth.AuthViewModel
 import com.campus.service.ui.navigation.MainScaffold
+import com.campus.service.ui.notification.NotificationViewModel
 import com.campus.service.ui.profile.ProfileViewModel
 import com.campus.service.ui.student.CreateTicketViewModel
 import com.campus.service.ui.student.HomeViewModel
@@ -25,6 +25,7 @@ import com.campus.service.ui.student.TicketHistoryViewModel
 import com.campus.service.ui.technician.RadarViewModel
 import com.campus.service.ui.technician.TechHistoryViewModel
 import com.campus.service.ui.technician.TechJobsViewModel
+import com.campus.service.ui.theme.CampusTheme
 
 class MainActivity : ComponentActivity() {
 
@@ -39,11 +40,12 @@ class MainActivity : ComponentActivity() {
     private val techJobsViewModel: TechJobsViewModel by viewModels()
     private val radarViewModel: RadarViewModel by viewModels()
     private val techHistoryViewModel: TechHistoryViewModel by viewModels()
+    private val notificationViewModel: NotificationViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
+            CampusTheme {
                 val state by authViewModel.state.collectAsState()
                 val profile = state.profile
 
@@ -66,6 +68,7 @@ class MainActivity : ComponentActivity() {
                         techJobsViewModel = techJobsViewModel,
                         radarViewModel = radarViewModel,
                         techHistoryViewModel = techHistoryViewModel,
+                        notificationViewModel = notificationViewModel,
                         onSignOut = authViewModel::signOut
                     )
                     else -> AuthScreen(state = state, vm = authViewModel)

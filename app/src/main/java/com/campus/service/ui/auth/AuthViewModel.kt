@@ -93,6 +93,13 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             _state.update { it.copy(loading = true, error = null, info = null) }
             try {
+                // Bỏ phiên cũ (nếu còn sót) để không gửi token hết hạn lên server
+                if (auth.currentUserOrNull() != null) {
+                    try {
+                        auth.signOut()
+                    } catch (_: Exception) {
+                    }
+                }
                 auth.signInWith(Email) {
                     this.email = email.trim()
                     this.password = password
@@ -112,7 +119,7 @@ class AuthViewModel : ViewModel() {
                     }
                     resendSignupOtp()
                 } else {
-                    _state.update { it.copy(loading = false, error = translate(e)) }
+                    _state.update { it.copy(loading = false, error = translateLogin(e)) }
                 }
             }
         }
@@ -265,6 +272,23 @@ class AuthViewModel : ViewModel() {
         }
     }
 
+    /** Lỗi của màn ĐĂNG NHẬP: không dịch sang câu về OTP, để lộ lỗi thật khi chưa biết. */
+    private fun translateLogin(e: Exception): String {
+        val m = e.message.orEmpty()
+        return when {
+            m.contains("Invalid login credentials", ignoreCase = true) -> "Sai email hoặc mật khẩu."
+            m.contains("only request this after", ignoreCase = true) ||
+                    m.contains("rate limit", ignoreCase = true) ->
+                "Đăng nhập quá nhiều lần, vui lòng đợi một lúc rồi thử lại."
+            m.contains("Unable to resolve host", ignoreCase = true) ->
+                "Không phân giải được địa chỉ máy chủ: ${m.take(200)}"
+            m.contains("timeout", ignoreCase = true) ->
+                "Hết thời gian chờ máy chủ: ${m.take(200)}"
+            else -> "Không đăng nhập được (${e::class.simpleName}): ${m.take(200)}"
+        }
+    }
+
+    /** Lỗi của các màn đăng ký, nhập OTP, quên mật khẩu. */
     private fun translate(e: Exception): String {
         val m = e.message.orEmpty()
         return when {
@@ -274,7 +298,7 @@ class AuthViewModel : ViewModel() {
                     m.contains("rate limit", ignoreCase = true) ->
                 "Gửi quá nhanh hoặc quá nhiều lần, vui lòng đợi một lúc rồi thử lại."
             m.contains("expired", ignoreCase = true) ||
-                    m.contains("invalid", ignoreCase = true) && m.contains("token", ignoreCase = true) ->
+                    (m.contains("invalid", ignoreCase = true) && m.contains("token", ignoreCase = true)) ->
                 "Mã OTP sai hoặc đã hết hạn."
             m.contains("same password", ignoreCase = true) ->
                 "Mật khẩu mới phải khác mật khẩu cũ."
