@@ -6,12 +6,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Engineering
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Radar
+import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.Engineering
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Radar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -62,30 +72,32 @@ private enum class TabKind {
     ADMIN_DASHBOARD, ADMIN_DISPATCH, ADMIN_HISTORY, TECH_JOBS, TECH_RADAR, TECH_HISTORY
 }
 
+/** icon: biểu tượng viền (khi chưa chọn); selectedIcon: biểu tượng đặc (khi đang chọn). */
 private data class TabItem(
     val title: String,
     val icon: ImageVector,
+    val selectedIcon: ImageVector,
     val kind: TabKind = TabKind.PLACEHOLDER
 )
 
 private fun tabsFor(role: UserRole): List<TabItem> = when (role) {
     UserRole.STUDENT -> listOf(
-        TabItem("Trang chủ", Icons.Filled.Home, TabKind.STUDENT_HOME),
-        TabItem("Tạo phiếu", Icons.Filled.Add, TabKind.CREATE_TICKET),
-        TabItem("Lịch sử", Icons.Filled.DateRange, TabKind.STUDENT_HISTORY),
-        TabItem("Cá nhân", Icons.Filled.Person, TabKind.PROFILE)
+        TabItem("Trang chủ", Icons.Outlined.Home, Icons.Filled.Home, TabKind.STUDENT_HOME),
+        TabItem("Tạo phiếu", Icons.Outlined.AddCircle, Icons.Filled.AddCircle, TabKind.CREATE_TICKET),
+        TabItem("Lịch sử", Icons.Outlined.History, Icons.Filled.History, TabKind.STUDENT_HISTORY),
+        TabItem("Cá nhân", Icons.Outlined.Person, Icons.Filled.Person, TabKind.PROFILE)
     )
     UserRole.ADMIN -> listOf(
-        TabItem("Tổng quan", Icons.Filled.Home, TabKind.ADMIN_DASHBOARD),
-        TabItem("Điều phối", Icons.Filled.Build, TabKind.ADMIN_DISPATCH),
-        TabItem("Lịch sử", Icons.Filled.DateRange, TabKind.ADMIN_HISTORY),
-        TabItem("Cá nhân", Icons.Filled.Person, TabKind.PROFILE)
+        TabItem("Tổng quan", Icons.Outlined.Dashboard, Icons.Filled.Dashboard, TabKind.ADMIN_DASHBOARD),
+        TabItem("Điều phối", Icons.Outlined.Engineering, Icons.Filled.Engineering, TabKind.ADMIN_DISPATCH),
+        TabItem("Lịch sử", Icons.Outlined.History, Icons.Filled.History, TabKind.ADMIN_HISTORY),
+        TabItem("Cá nhân", Icons.Outlined.Person, Icons.Filled.Person, TabKind.PROFILE)
     )
     UserRole.TECHNICIAN -> listOf(
-        TabItem("Radar", Icons.Filled.Search, TabKind.TECH_RADAR),
-        TabItem("Công việc", Icons.Filled.Build, TabKind.TECH_JOBS),
-        TabItem("Lịch sử", Icons.Filled.DateRange, TabKind.TECH_HISTORY),
-        TabItem("Cá nhân", Icons.Filled.Person, TabKind.PROFILE)
+        TabItem("Radar", Icons.Outlined.Radar, Icons.Filled.Radar, TabKind.TECH_RADAR),
+        TabItem("Công việc", Icons.Outlined.Build, Icons.Filled.Build, TabKind.TECH_JOBS),
+        TabItem("Lịch sử", Icons.Outlined.History, Icons.Filled.History, TabKind.TECH_HISTORY),
+        TabItem("Cá nhân", Icons.Outlined.Person, Icons.Filled.Person, TabKind.PROFILE)
     )
 }
 
@@ -126,10 +138,16 @@ fun MainScaffold(
         bottomBar = {
             NavigationBar {
                 tabs.forEachIndexed { index, tab ->
+                    val isSelected = selected == index
                     NavigationBarItem(
-                        selected = selected == index,
+                        selected = isSelected,
                         onClick = { selected = index },
-                        icon = { Icon(tab.icon, contentDescription = tab.title) },
+                        icon = {
+                            Icon(
+                                imageVector = if (isSelected) tab.selectedIcon else tab.icon,
+                                contentDescription = tab.title
+                            )
+                        },
                         label = { Text(tab.title) }
                     )
                 }
