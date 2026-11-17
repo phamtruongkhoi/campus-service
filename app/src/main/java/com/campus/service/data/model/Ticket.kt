@@ -1,5 +1,6 @@
 package com.campus.service.data.model
 
+import com.campus.service.util.parseIsoMillis
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -59,6 +60,7 @@ data class Ticket(
     val feedback: String? = null,
     @SerialName("created_at") val createdAt: String = "",
     @SerialName("updated_at") val updatedAt: String? = null,
+    @SerialName("resolved_at") val resolvedAt: String? = null,
     val areas: AreaRef? = null,
     val categories: CategoryRef? = null,
     @SerialName("ticket_images") val images: List<ImageRef> = emptyList(),
@@ -78,4 +80,21 @@ data class Ticket(
         }
     val assigneeLabel: String
         get() = assignee?.fullName?.ifBlank { null } ?: if (assignedTo == null) "Chưa phân công" else "(không rõ tên)"
+
+    /** Quá hạn: chưa xong (Open/Assigned/In progress), có ETA và ETA đã qua. */
+    val isOverdue: Boolean
+        get() {
+            val s = statusEnum
+            if (s == TicketStatus.RESOLVED || s == TicketStatus.CLOSED) return false
+            val due = parseIsoMillis(eta) ?: return false
+            return due < System.currentTimeMillis()
+        }
+
+    /** Thời gian xử lý = resolved_at - created_at (null nếu chưa khắc phục hoặc thiếu dữ liệu). */
+    val processingMillis: Long?
+        get() {
+            val end = parseIsoMillis(resolvedAt) ?: return null
+            val start = parseIsoMillis(createdAt) ?: return null
+            return (end - start).takeIf { it >= 0 }
+        }
 }

@@ -37,6 +37,16 @@ data class AdminDashboardUiState(
 
     val recent: List<Ticket>
         get() = tickets.sortedByDescending { it.createdAt }.take(5)
+
+    /** Số phiếu quá hạn (ETA đã qua mà chưa xong). */
+    val overdueCount: Int get() = tickets.count { it.isOverdue }
+
+    /** Thời gian xử lý trung bình (mili-giây) của các phiếu đã khắc phục; null nếu chưa có dữ liệu. */
+    val averageProcessingMillis: Long?
+        get() {
+            val values = tickets.mapNotNull { it.processingMillis }
+            return if (values.isEmpty()) null else values.average().toLong()
+        }
 }
 
 class AdminDashboardViewModel : ViewModel() {

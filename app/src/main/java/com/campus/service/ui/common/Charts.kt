@@ -24,8 +24,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.campus.service.data.model.TicketStatus
+import com.campus.service.ui.theme.Campus
 
-/** Màu cố định cho từng trạng thái (dùng chung cho biểu đồ và chú thích). */
+/** Màu cố định cũ theo trạng thái (giữ lại cho nơi khác còn gọi). Biểu đồ dùng màu token qua Campus.extra. */
 fun statusColor(status: TicketStatus): Color = when (status) {
     TicketStatus.OPEN -> Color(0xFF9E9E9E)
     TicketStatus.ASSIGNED -> Color(0xFF1E88E5)
@@ -39,6 +40,8 @@ fun statusColor(status: TicketStatus): Color = when (status) {
 fun StatusDonutChart(counts: Map<TicketStatus, Int>, modifier: Modifier = Modifier) {
     val total = counts.values.sum()
     val emptyColor = MaterialTheme.colorScheme.outlineVariant
+    val extra = Campus.extra
+    val colors: Map<TicketStatus, Color> = counts.keys.associateWith { extra.status(it).accent }
 
     Row(
         modifier = modifier,
@@ -47,7 +50,7 @@ fun StatusDonutChart(counts: Map<TicketStatus, Int>, modifier: Modifier = Modifi
     ) {
         Box(contentAlignment = Alignment.Center) {
             Canvas(modifier = Modifier.size(140.dp)) {
-                val strokeWidth = 24.dp.toPx()
+                val strokeWidth = 22.dp.toPx()
                 val diameter = size.minDimension - strokeWidth
                 val topLeft = Offset(strokeWidth / 2, strokeWidth / 2)
                 val arcSize = Size(diameter, diameter)
@@ -68,7 +71,7 @@ fun StatusDonutChart(counts: Map<TicketStatus, Int>, modifier: Modifier = Modifi
                         if (count > 0) {
                             val sweep = 360f * count / total
                             drawArc(
-                                color = statusColor(status),
+                                color = colors[status] ?: emptyColor,
                                 startAngle = start,
                                 sweepAngle = sweep,
                                 useCenter = false,
@@ -83,7 +86,11 @@ fun StatusDonutChart(counts: Map<TicketStatus, Int>, modifier: Modifier = Modifi
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text("$total", style = MaterialTheme.typography.headlineSmall)
-                Text("phiếu", style = MaterialTheme.typography.labelSmall)
+                Text(
+                    "phiếu",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
@@ -93,7 +100,7 @@ fun StatusDonutChart(counts: Map<TicketStatus, Int>, modifier: Modifier = Modifi
                     Box(
                         modifier = Modifier
                             .size(12.dp)
-                            .background(statusColor(status), RoundedCornerShape(3.dp))
+                            .background(colors[status] ?: emptyColor, RoundedCornerShape(3.dp))
                     )
                     Spacer(Modifier.width(8.dp))
                     Text("${status.label}: $count", style = MaterialTheme.typography.bodyMedium)
@@ -113,9 +120,13 @@ fun HorizontalBarChart(
     val maxValue = (items.maxOfOrNull { it.second } ?: 1).coerceAtLeast(1)
     val trackColor = MaterialTheme.colorScheme.surfaceVariant
 
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         if (items.isEmpty()) {
-            Text("Chưa có dữ liệu.", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "Chưa có dữ liệu.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
         items.forEach { (label, value) ->
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -127,19 +138,19 @@ fun HorizontalBarChart(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(14.dp)
-                        .background(trackColor, RoundedCornerShape(7.dp))
+                        .height(12.dp)
+                        .background(trackColor, RoundedCornerShape(6.dp))
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(value.toFloat() / maxValue)
-                            .height(14.dp)
-                            .background(barColor, RoundedCornerShape(7.dp))
+                            .height(12.dp)
+                            .background(barColor, RoundedCornerShape(6.dp))
                     )
                 }
                 Text(
                     text = "$value",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
