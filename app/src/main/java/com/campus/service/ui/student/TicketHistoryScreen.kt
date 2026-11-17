@@ -1,7 +1,6 @@
 package com.campus.service.ui.student
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,19 +10,31 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -34,16 +45,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.campus.service.data.model.Ticket
 import com.campus.service.data.model.TicketEvent
 import com.campus.service.data.model.TicketStatus
+import com.campus.service.ui.common.AppCard
+import com.campus.service.ui.common.AppTextField
+import com.campus.service.ui.common.EmptyState
+import com.campus.service.ui.common.GradientHeader
+import com.campus.service.ui.common.IconInfoRow
 import com.campus.service.ui.common.LiveIndicator
 import com.campus.service.ui.common.LoadingButton
 import com.campus.service.ui.common.MessageText
+import com.campus.service.ui.common.PriorityTag
+import com.campus.service.ui.common.SectionTitle
+import com.campus.service.ui.common.SkeletonList
 import com.campus.service.ui.common.StatusBadge
 import com.campus.service.ui.common.StatusTimeline
 import com.campus.service.ui.common.StorageImage
+import com.campus.service.ui.theme.Campus
 import com.campus.service.util.formatDateTime
 
 @Composable
@@ -75,10 +97,27 @@ fun TicketHistoryScreen(userId: String, vm: TicketHistoryViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 16.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
     ) {
-        Text("Lịch sử phiếu", style = MaterialTheme.typography.headlineMedium)
-        LiveIndicator(state.live)
+        // Tiêu đề + trạng thái realtime + nút làm mới
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Lịch sử phiếu", style = MaterialTheme.typography.headlineMedium)
+                Text(
+                    "${state.tickets.size} phiếu đã gửi",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            LiveIndicator(state.live)
+            IconButton(onClick = { vm.refresh(userId) }, enabled = !state.loading) {
+                Icon(Icons.Outlined.Refresh, contentDescription = "Làm mới")
+            }
+        }
         Spacer(Modifier.height(8.dp))
 
         // Bộ lọc theo trạng thái
@@ -103,25 +142,28 @@ fun TicketHistoryScreen(userId: String, vm: TicketHistoryViewModel) {
 
         MessageText(error = state.error, info = null)
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = { vm.refresh(userId) }, enabled = !state.loading) {
-                Text("Làm mới")
-            }
-            if (state.loading) {
-                Spacer(Modifier.padding(horizontal = 8.dp))
-                CircularProgressIndicator(modifier = Modifier.height(24.dp))
-            }
-        }
-        Spacer(Modifier.height(8.dp))
-
         val items = state.visible
-        if (items.isEmpty() && !state.loading) {
-            Text(
-                if (state.tickets.isEmpty()) "Bạn chưa gửi phiếu nào."
-                else "Không có phiếu nào ở trạng thái này."
-            )
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        when {
+            state.loading && state.tickets.isEmpty() -> SkeletonList()
+            items.isEmpty() -> {
+                if (state.tickets.isEmpty()) {
+                    EmptyState(
+                        icon = Icons.Outlined.Inbox,
+                        title = "Chưa có phiếu nào",
+                        message = "Bạn chưa gửi phiếu nào. Vào tab Tạo phiếu để báo sự cố."
+                    )
+                } else {
+                    EmptyState(
+                        icon = Icons.Outlined.FilterList,
+                        title = "Không có phiếu phù hợp",
+                        message = "Không có phiếu nào ở trạng thái này."
+                    )
+                }
+            }
+            else -> LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 16.dp)
+            ) {
                 items(items, key = { it.id }) { ticket ->
                     TicketCard(ticket = ticket, onClick = { vm.openDetail(ticket) })
                 }
@@ -132,37 +174,55 @@ fun TicketHistoryScreen(userId: String, vm: TicketHistoryViewModel) {
 
 @Composable
 private fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    ticket.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(Modifier.padding(horizontal = 4.dp))
-                StatusBadge(ticket.statusEnum)
-            }
-            Spacer(Modifier.height(4.dp))
+    AppCard(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Text(
+                ticket.title,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(Modifier.width(8.dp))
+            StatusBadge(ticket.statusEnum)
+        }
+        Spacer(Modifier.height(6.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = Icons.Outlined.Place,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(Modifier.width(6.dp))
             Text(
                 "${ticket.areaLabel} • ${ticket.categoryLabel}",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text(formatDateTime(ticket.createdAt), style = MaterialTheme.typography.bodySmall)
-            if (ticket.statusEnum == TicketStatus.RESOLVED) {
-                Spacer(Modifier.height(4.dp))
+        }
+        Spacer(Modifier.height(2.dp))
+        Text(
+            formatDateTime(ticket.createdAt),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (ticket.statusEnum == TicketStatus.RESOLVED) {
+            Spacer(Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Outlined.CheckCircle,
+                    contentDescription = null,
+                    tint = Campus.extra.success,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(6.dp))
                 Text(
                     "Đã khắc phục xong, bấm để nghiệm thu",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    color = Campus.extra.success
                 )
             }
         }
@@ -184,66 +244,148 @@ private fun TicketDetail(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
     ) {
-        TextButton(onClick = onBack) { Text("< Quay lại danh sách") }
-
-        Text(ticket.title, style = MaterialTheme.typography.headlineSmall)
-        LiveIndicator(live)
-        Spacer(Modifier.height(8.dp))
-        StatusBadge(ticket.statusEnum)
-        Spacer(Modifier.height(16.dp))
-
-        InfoRow("Khu vực", ticket.areaLabel)
-        InfoRow("Loại lỗi", ticket.categoryLabel)
-        InfoRow("Mức ưu tiên", ticket.priorityEnum.label)
-        InfoRow("Gửi lúc", formatDateTime(ticket.createdAt))
-        InfoRow("Dự kiến xong (ETA)", formatDateTime(ticket.eta))
-        InfoRow("Cập nhật lần cuối", formatDateTime(ticket.updatedAt))
-
-        // Nghiệm thu: chỉ khi phiếu đã khắc phục và chưa có đánh giá
-        if (ticket.statusEnum == TicketStatus.RESOLVED) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-            AcceptanceForm(
-                key = ticket.id,
-                accepting = accepting,
-                error = actionError,
-                onAccept = onAccept
+        GradientHeader(bottomPadding = 20.dp) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Quay lại danh sách",
+                        tint = Color.White
+                    )
+                }
+                Text(
+                    "Chi tiết phiếu",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            Text(
+                ticket.title,
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White
             )
-        } else if (info != null) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-            MessageText(error = null, info = info)
+            Spacer(Modifier.height(10.dp))
+            StatusBadge(ticket.statusEnum)
         }
 
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-        Text("Tiến trình xử lý", style = MaterialTheme.typography.titleSmall)
-        Spacer(Modifier.height(4.dp))
-        StatusTimeline(events = events, current = ticket.statusEnum)
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-        Text("Mô tả", style = MaterialTheme.typography.titleSmall)
-        Text(ticket.description?.ifBlank { "(không có)" } ?: "(không có)")
-
-        if (ticket.images.isNotEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-            Text("Ảnh đính kèm (${ticket.images.size})", style = MaterialTheme.typography.titleSmall)
-            Spacer(Modifier.height(8.dp))
-            ticket.images.forEach { image ->
-                StorageImage(
-                    path = image.path,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                )
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Thông tin chung
+            AppCard(modifier = Modifier.fillMaxWidth()) {
+                IconInfoRow(Icons.Outlined.Place, "Khu vực", ticket.areaLabel)
+                IconInfoRow(Icons.Outlined.Category, "Loại lỗi", ticket.categoryLabel)
+                IconInfoRow(Icons.Outlined.Schedule, "Gửi lúc", formatDateTime(ticket.createdAt))
+                IconInfoRow(Icons.Outlined.Event, "Dự kiến xong", formatDateTime(ticket.eta))
+                IconInfoRow(Icons.Outlined.Update, "Cập nhật", formatDateTime(ticket.updatedAt))
                 Spacer(Modifier.height(8.dp))
+                PriorityTag(ticket.priorityEnum)
+            }
+
+            // Nghiệm thu: chỉ khi phiếu đã khắc phục
+            if (ticket.statusEnum == TicketStatus.RESOLVED) {
+                AcceptanceForm(
+                    key = ticket.id,
+                    accepting = accepting,
+                    error = actionError,
+                    onAccept = onAccept
+                )
+            } else if (info != null) {
+                AppCard(modifier = Modifier.fillMaxWidth()) {
+                    MessageText(error = null, info = info)
+                }
+            }
+
+            // Timeline
+            AppCard(modifier = Modifier.fillMaxWidth()) {
+                SectionTitle(text = "Tiến trình xử lý", trailing = { LiveIndicator(live) })
+                Spacer(Modifier.height(8.dp))
+                StatusTimeline(events = events, current = ticket.statusEnum)
+            }
+
+            // Mô tả
+            AppCard(modifier = Modifier.fillMaxWidth()) {
+                SectionTitle(text = "Mô tả")
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    ticket.description?.ifBlank { "(không có)" } ?: "(không có)",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            // Ảnh đính kèm
+            if (ticket.images.isNotEmpty()) {
+                AppCard(modifier = Modifier.fillMaxWidth()) {
+                    SectionTitle(text = "Ảnh đính kèm (${ticket.images.size})")
+                    Spacer(Modifier.height(8.dp))
+                    ticket.images.forEach { image ->
+                        StorageImage(
+                            path = image.path,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                        )
+                        Spacer(Modifier.height(8.dp))
+                    }
+                }
+            }
+
+            // Đánh giá đã gửi
+            if (ticket.rating != null || !ticket.feedback.isNullOrBlank()) {
+                AppCard(modifier = Modifier.fillMaxWidth()) {
+                    SectionTitle(text = "Đánh giá của bạn")
+                    Spacer(Modifier.height(6.dp))
+                    if (ticket.rating != null) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            StarRow(rating = ticket.rating, onSelect = null, enabled = false)
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                "${ticket.rating}/5",
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+                    }
+                    if (!ticket.feedback.isNullOrBlank()) {
+                        Spacer(Modifier.height(6.dp))
+                        Text(ticket.feedback, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
             }
         }
+    }
+}
 
-        if (ticket.rating != null || !ticket.feedback.isNullOrBlank()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-            Text("Đánh giá của bạn", style = MaterialTheme.typography.titleSmall)
-            if (ticket.rating != null) Text("${ticket.rating}/5 sao")
-            if (!ticket.feedback.isNullOrBlank()) Text(ticket.feedback)
+/** Hàng 5 ngôi sao. onSelect = null nghĩa là chỉ hiển thị, không bấm được. */
+@Composable
+private fun StarRow(rating: Int, onSelect: ((Int) -> Unit)?, enabled: Boolean) {
+    val filled = Campus.extra.priorityMedium
+    val empty = MaterialTheme.colorScheme.outline
+    Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+        (1..5).forEach { star ->
+            val on = star <= rating
+            val icon = if (on) Icons.Filled.Star else Icons.Outlined.StarBorder
+            val tint = if (on) filled else empty
+            if (onSelect == null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = tint,
+                    modifier = Modifier.size(20.dp)
+                )
+            } else {
+                IconButton(onClick = { onSelect(star) }, enabled = enabled) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = "$star sao",
+                        tint = tint,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -258,53 +400,39 @@ private fun AcceptanceForm(
     var rating by remember(key) { mutableIntStateOf(0) }
     var feedback by remember(key) { mutableStateOf("") }
 
-    Text("Nghiệm thu", style = MaterialTheme.typography.titleMedium)
-    Text(
-        "Sự cố đã được báo khắc phục. Vui lòng đánh giá để đóng phiếu.",
-        style = MaterialTheme.typography.bodyMedium
-    )
-    Spacer(Modifier.height(8.dp))
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        (1..5).forEach { star ->
-            FilterChip(
-                selected = rating == star,
-                onClick = { rating = star },
-                enabled = !accepting,
-                label = { Text("$star ★") }
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        SectionTitle(text = "Nghiệm thu")
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "Sự cố đã được báo khắc phục. Vui lòng đánh giá để đóng phiếu.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(8.dp))
+        StarRow(rating = rating, onSelect = { rating = it }, enabled = !accepting)
+        if (rating == 0) {
+            Text(
+                "Chọn số sao để nghiệm thu.",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-    }
-    Spacer(Modifier.height(8.dp))
-    OutlinedTextField(
-        value = feedback,
-        onValueChange = { feedback = it },
-        label = { Text("Nhận xét (không bắt buộc)") },
-        enabled = !accepting,
-        minLines = 2,
-        modifier = Modifier.fillMaxWidth()
-    )
-    Spacer(Modifier.height(8.dp))
-    MessageText(error = error, info = null)
-    if (rating == 0) {
-        Text("Chọn số sao để nghiệm thu.", style = MaterialTheme.typography.labelMedium)
-        Spacer(Modifier.height(4.dp))
-    }
-    LoadingButton(
-        text = "Nghiệm thu và đóng phiếu",
-        loading = accepting,
-        onClick = { onAccept(rating, feedback) }
-    )
-}
-
-@Composable
-private fun InfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-        Text(value, style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.height(8.dp))
+        AppTextField(
+            value = feedback,
+            onValueChange = { feedback = it },
+            label = "Nhận xét (không bắt buộc)",
+            singleLine = false,
+            minLines = 2,
+            readOnly = accepting,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+        MessageText(error = error, info = null)
+        LoadingButton(
+            text = "Nghiệm thu và đóng phiếu",
+            loading = accepting,
+            onClick = { onAccept(rating, feedback) }
+        )
     }
 }

@@ -3,9 +3,12 @@ package com.campus.service
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -45,6 +48,9 @@ class MainActivity : ComponentActivity() {
     private val notificationViewModel: NotificationViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Edge-to-edge: thanh trạng thái/điều hướng trong suốt, biểu tượng tự đổi
+        // sáng/tối theo chế độ của hệ thống (khớp với CampusTheme dùng isSystemInDarkTheme)
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
             CampusTheme {
@@ -63,6 +69,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             CircularProgressIndicator()
                         }
+                        // MainScaffold tự xử lý inset qua Scaffold
                         profile != null -> MainScaffold(
                             profile = profile,
                             profileViewModel = profileViewModel,
@@ -78,7 +85,15 @@ class MainActivity : ComponentActivity() {
                             notificationViewModel = notificationViewModel,
                             onSignOut = authViewModel::signOut
                         )
-                        else -> AuthScreen(state = state, vm = authViewModel)
+                        // Màn Đăng nhập không có Scaffold nên tự chừa chỗ cho thanh hệ thống
+                        else -> Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .statusBarsPadding()
+                                .navigationBarsPadding()
+                        ) {
+                            AuthScreen(state = state, vm = authViewModel)
+                        }
                     }
                 }
             }
