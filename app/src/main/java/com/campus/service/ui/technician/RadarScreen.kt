@@ -1,20 +1,26 @@
 package com.campus.service.ui.technician
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Build
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,12 +28,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.campus.service.data.model.Ticket
+import com.campus.service.ui.common.AppCard
+import com.campus.service.ui.common.EmptyState
 import com.campus.service.ui.common.HorizontalBarChart
-import com.campus.service.ui.common.LiveIndicator
 import com.campus.service.ui.common.MessageText
+import com.campus.service.ui.common.OverdueTag
+import com.campus.service.ui.common.ScreenHeaderRow
+import com.campus.service.ui.common.SectionTitle
+import com.campus.service.ui.common.SkeletonList
+import com.campus.service.ui.common.StatTile
 import com.campus.service.ui.common.StatusBadge
+import com.campus.service.ui.theme.Campus
 
 @Composable
 fun RadarScreen(userId: String, vm: RadarViewModel) {
@@ -41,97 +55,110 @@ fun RadarScreen(userId: String, vm: RadarViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp)
     ) {
         item {
-            Spacer(Modifier.height(8.dp))
-            Text("Maintenance Radar", style = MaterialTheme.typography.headlineMedium)
-            LiveIndicator(state.live)
+            ScreenHeaderRow(
+                title = "Maintenance Radar",
+                subtitle = "Sự cố toàn trường theo thời gian thực",
+                live = state.live,
+                loading = state.loading,
+                onRefresh = { vm.refresh(userId) }
+            )
             MessageText(error = state.error, info = null)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedButton(onClick = { vm.refresh(userId) }, enabled = !state.loading) {
-                    Text("Làm mới")
-                }
-                if (state.loading) {
-                    Spacer(Modifier.padding(horizontal = 8.dp))
-                    CircularProgressIndicator(modifier = Modifier.height(24.dp))
-                }
+        }
+
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                StatTile(
+                    icon = Icons.Outlined.Warning,
+                    label = "Đang mở",
+                    value = "${state.active.size}",
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.weight(1f)
+                )
+                StatTile(
+                    icon = Icons.Outlined.Inbox,
+                    label = "Chưa giao",
+                    value = "${state.unassignedCount}",
+                    tint = Campus.extra.open.accent,
+                    modifier = Modifier.weight(1f)
+                )
+                StatTile(
+                    icon = Icons.Outlined.Build,
+                    label = "Đang xử lý",
+                    value = "${state.inProgressCount}",
+                    tint = Campus.extra.inProgress.accent,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
 
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatCard("Sự cố đang mở", state.active.size, Modifier.weight(1f))
-                StatCard("Chưa phân công", state.unassignedCount, Modifier.weight(1f))
-                StatCard("Đang xử lý", state.inProgressCount, Modifier.weight(1f))
+            AppCard(modifier = Modifier.fillMaxWidth()) {
+                SectionTitle(text = "Khối lượng công việc")
+                Spacer(Modifier.height(12.dp))
+                HorizontalBarChart(
+                    items = state.workload,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
 
-        item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Khối lượng công việc", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(12.dp))
-                    HorizontalBarChart(
-                        items = state.workload,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+        item { SectionTitle(text = "Theo tòa nhà / khu vực") }
+
+        when {
+            state.loading && groups.isEmpty() -> item { SkeletonList() }
+            groups.isEmpty() -> item {
+                EmptyState(
+                    icon = Icons.Outlined.CheckCircle,
+                    title = "Không có sự cố",
+                    message = "Hiện không có sự cố nào đang xử lý."
+                )
             }
-        }
-
-        item {
-            Text("Theo tòa nhà / khu vực", style = MaterialTheme.typography.titleMedium)
-        }
-
-        if (groups.isEmpty() && !state.loading) {
-            item { Text("Hiện không có sự cố nào đang xử lý.") }
-        }
-
-        items(groups, key = { it.building }) { group ->
-            BuildingCard(group)
-        }
-
-        item { Spacer(Modifier.height(16.dp)) }
-    }
-}
-
-@Composable
-private fun StatCard(label: String, value: Int, modifier: Modifier = Modifier) {
-    Card(modifier = modifier) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text("$value", style = MaterialTheme.typography.headlineMedium)
-            Text(label, style = MaterialTheme.typography.labelMedium)
+            else -> items(groups, key = { it.building }) { group ->
+                BuildingCard(group)
+            }
         }
     }
 }
 
 @Composable
 private fun BuildingCard(group: BuildingGroup) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    group.building + if (group.mine) "  (có việc của bạn)" else "",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                Text("${group.tickets.size} sự cố", style = MaterialTheme.typography.labelLarge)
+    AppCard(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(group.building, style = MaterialTheme.typography.titleMedium)
+                if (group.mine) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Có việc của bạn",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .padding(horizontal = 10.dp, vertical = 3.dp)
+                    )
+                }
             }
-            Spacer(Modifier.height(4.dp))
-            Text(
-                if (group.colleagues.isEmpty()) "Chưa có kỹ thuật viên nào tại đây"
-                else "Kỹ thuật viên tại đây: " + group.colleagues.joinToString(", "),
-                style = MaterialTheme.typography.bodySmall
-            )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                group.tickets.forEach { ticket -> RadarRow(ticket) }
-            }
+            Text("${group.tickets.size} sự cố", style = MaterialTheme.typography.labelLarge)
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            if (group.colleagues.isEmpty()) "Chưa có kỹ thuật viên nào tại đây"
+            else "Kỹ thuật viên tại đây: " + group.colleagues.joinToString(", "),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            group.tickets.forEach { ticket -> RadarRow(ticket) }
         }
     }
 }
@@ -144,15 +171,24 @@ private fun RadarRow(ticket: Ticket) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(ticket.title, style = MaterialTheme.typography.bodyMedium)
+            Text(ticket.title, style = MaterialTheme.typography.titleSmall)
             Text(
                 "${ticket.areas?.name ?: "—"} • ${ticket.categoryLabel} • " +
                         "Ưu tiên ${ticket.priorityEnum.label}",
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Text("Phụ trách: ${ticket.assigneeLabel}", style = MaterialTheme.typography.bodySmall)
+            Text(
+                "Phụ trách: ${ticket.assigneeLabel}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (ticket.isOverdue) {
+                Spacer(Modifier.height(4.dp))
+                OverdueTag()
+            }
         }
-        Spacer(Modifier.padding(horizontal = 4.dp))
+        Spacer(Modifier.width(8.dp))
         StatusBadge(ticket.statusEnum)
     }
 }

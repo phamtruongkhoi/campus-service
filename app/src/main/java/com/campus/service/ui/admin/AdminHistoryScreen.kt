@@ -1,7 +1,6 @@
 package com.campus.service.ui.admin
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,12 +13,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Engineering
+import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.Flag
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material.icons.outlined.Update
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,12 +38,20 @@ import androidx.compose.ui.unit.dp
 import com.campus.service.data.model.Ticket
 import com.campus.service.data.model.TicketPriority
 import com.campus.service.data.model.TicketStatus
+import com.campus.service.ui.common.AppCard
+import com.campus.service.ui.common.AppTextField
 import com.campus.service.ui.common.DropdownField
-import com.campus.service.ui.common.LiveIndicator
+import com.campus.service.ui.common.EmptyState
+import com.campus.service.ui.common.IconInfoRow
 import com.campus.service.ui.common.MessageText
-import com.campus.service.ui.common.StatusBadge
-import com.campus.service.ui.common.StatusTimeline
-import com.campus.service.ui.common.StorageImage
+import com.campus.service.ui.common.ScreenHeaderRow
+import com.campus.service.ui.common.SkeletonList
+import com.campus.service.ui.common.TicketDescriptionCard
+import com.campus.service.ui.common.TicketDetailHeader
+import com.campus.service.ui.common.TicketImagesCard
+import com.campus.service.ui.common.TicketListCard
+import com.campus.service.ui.common.TicketRatingCard
+import com.campus.service.ui.common.TicketTimelineCard
 import com.campus.service.util.formatDateTime
 
 private data class FilterOption(val value: String?, val label: String)
@@ -73,17 +87,22 @@ fun AdminHistoryScreen(vm: AdminHistoryViewModel) {
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         item {
+            Spacer(Modifier.height(16.dp))
+            ScreenHeaderRow(
+                title = "Lịch sử toàn trường",
+                subtitle = "${state.tickets.size} phiếu",
+                live = state.live,
+                loading = state.loading,
+                onRefresh = { vm.refresh() }
+            )
             Spacer(Modifier.height(8.dp))
-            Text("Lịch sử toàn trường", style = MaterialTheme.typography.headlineMedium)
-            LiveIndicator(state.live)
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
+            AppTextField(
                 value = filters.query,
                 onValueChange = vm::setQuery,
-                label = { Text("Tìm theo tiêu đề, mô tả, người gửi, khu vực") },
+                label = "Tìm theo tiêu đề, mô tả, người gửi, khu vực",
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -137,67 +156,36 @@ fun AdminHistoryScreen(vm: AdminHistoryViewModel) {
             ) {
                 Text(
                     "Tìm thấy ${visible.size} / ${state.tickets.size} phiếu",
-                    style = MaterialTheme.typography.labelLarge
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (state.loading) {
-                        CircularProgressIndicator(modifier = Modifier.height(20.dp))
-                        Spacer(Modifier.padding(horizontal = 4.dp))
-                    }
-                    if (filters.active) {
-                        TextButton(onClick = { vm.clearFilters() }) { Text("Xóa bộ lọc") }
-                    }
-                    OutlinedButton(onClick = { vm.refresh() }, enabled = !state.loading) {
-                        Text("Làm mới")
-                    }
+                if (filters.active) {
+                    TextButton(onClick = { vm.clearFilters() }) { Text("Xóa bộ lọc") }
                 }
             }
         }
-        if (visible.isEmpty() && !state.loading) {
-            item { Text("Không có phiếu nào khớp bộ lọc.") }
+        if (state.loading && state.tickets.isEmpty()) {
+            item { SkeletonList() }
+        } else if (visible.isEmpty()) {
+            item {
+                EmptyState(
+                    icon = Icons.Outlined.SearchOff,
+                    title = "Không có kết quả",
+                    message = "Không có phiếu nào khớp bộ lọc."
+                )
+            }
         }
         items(visible, key = { it.id }) { ticket ->
-            HistoryCard(ticket = ticket, onClick = { vm.openDetail(ticket) })
+            TicketListCard(
+                ticket = ticket,
+                onClick = { vm.openDetail(ticket) },
+                lines = listOf(
+                    "KTV: ${ticket.assigneeLabel}",
+                    "${ticket.creatorLabel} • ${formatDateTime(ticket.createdAt)}"
+                )
+            )
         }
         item { Spacer(Modifier.height(16.dp)) }
-    }
-}
-
-@Composable
-private fun HistoryCard(ticket: Ticket, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    ticket.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(Modifier.padding(horizontal = 4.dp))
-                StatusBadge(ticket.statusEnum)
-            }
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "${ticket.areaLabel} • ${ticket.categoryLabel}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                "Ưu tiên: ${ticket.priorityEnum.label} • KTV: ${ticket.assigneeLabel}",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(
-                "${ticket.creatorLabel} • ${formatDateTime(ticket.createdAt)}",
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
     }
 }
 
@@ -207,69 +195,41 @@ private fun HistoryDetail(ticket: Ticket, state: AdminHistoryUiState, onBack: ()
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
     ) {
-        TextButton(onClick = onBack) { Text("< Quay lại danh sách") }
+        TicketDetailHeader(
+            title = ticket.title,
+            status = ticket.statusEnum,
+            onBack = onBack,
+            overdue = ticket.isOverdue
+        )
 
-        Text(ticket.title, style = MaterialTheme.typography.headlineSmall)
-        LiveIndicator(state.live)
-        Spacer(Modifier.height(8.dp))
-        StatusBadge(ticket.statusEnum)
-        Spacer(Modifier.height(12.dp))
-
-        InfoRow("Người gửi", ticket.creatorLabel)
-        InfoRow("Khu vực", ticket.areaLabel)
-        InfoRow("Loại lỗi", ticket.categoryLabel)
-        InfoRow("Mức ưu tiên", ticket.priorityEnum.label)
-        InfoRow("Kỹ thuật viên", ticket.assigneeLabel)
-        InfoRow("Gửi lúc", formatDateTime(ticket.createdAt))
-        InfoRow("ETA", formatDateTime(ticket.eta))
-        InfoRow("Công khai", if (ticket.isPublic) "Có" else "Không")
-        InfoRow("Cập nhật lần cuối", formatDateTime(ticket.updatedAt))
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-        Text("Tiến trình xử lý", style = MaterialTheme.typography.titleSmall)
-        Spacer(Modifier.height(4.dp))
-        StatusTimeline(events = state.events, current = ticket.statusEnum)
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-        Text("Mô tả", style = MaterialTheme.typography.titleSmall)
-        Text(ticket.description?.ifBlank { "(không có)" } ?: "(không có)")
-
-        if (ticket.images.isNotEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-            Text("Ảnh đính kèm (${ticket.images.size})", style = MaterialTheme.typography.titleSmall)
-            Spacer(Modifier.height(8.dp))
-            ticket.images.forEach { image ->
-                StorageImage(
-                    path = image.path,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                )
-                Spacer(Modifier.height(8.dp))
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            AppCard(modifier = Modifier.fillMaxWidth()) {
+                IconInfoRow(Icons.Outlined.Person, "Người gửi", ticket.creatorLabel)
+                IconInfoRow(Icons.Outlined.Place, "Khu vực", ticket.areaLabel)
+                IconInfoRow(Icons.Outlined.Category, "Loại lỗi", ticket.categoryLabel)
+                IconInfoRow(Icons.Outlined.Flag, "Mức ưu tiên", ticket.priorityEnum.label)
+                IconInfoRow(Icons.Outlined.Engineering, "Kỹ thuật viên", ticket.assigneeLabel)
+                IconInfoRow(Icons.Outlined.Schedule, "Gửi lúc", formatDateTime(ticket.createdAt))
+                IconInfoRow(Icons.Outlined.Event, "ETA", formatDateTime(ticket.eta))
+                if (ticket.resolvedAt != null) {
+                    IconInfoRow(
+                        Icons.Outlined.CheckCircle,
+                        "Khắc phục lúc",
+                        formatDateTime(ticket.resolvedAt)
+                    )
+                }
+                IconInfoRow(Icons.Outlined.Public, "Công khai", if (ticket.isPublic) "Có" else "Không")
+                IconInfoRow(Icons.Outlined.Update, "Cập nhật", formatDateTime(ticket.updatedAt))
             }
-        }
 
-        if (ticket.rating != null || !ticket.feedback.isNullOrBlank()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-            Text("Đánh giá của sinh viên", style = MaterialTheme.typography.titleSmall)
-            if (ticket.rating != null) Text("${ticket.rating}/5 sao")
-            if (!ticket.feedback.isNullOrBlank()) Text(ticket.feedback)
+            TicketTimelineCard(events = state.events, current = ticket.statusEnum, live = state.live)
+            TicketDescriptionCard(ticket)
+            TicketImagesCard(ticket)
+            TicketRatingCard(ticket, title = "Đánh giá của sinh viên")
         }
-    }
-}
-
-@Composable
-private fun InfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-        Spacer(Modifier.padding(horizontal = 8.dp))
-        Text(value, style = MaterialTheme.typography.bodyMedium)
     }
 }

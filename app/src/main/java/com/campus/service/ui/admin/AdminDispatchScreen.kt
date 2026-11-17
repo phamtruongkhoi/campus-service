@@ -1,10 +1,10 @@
 package com.campus.service.ui.admin
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,15 +15,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Category
+import androidx.compose.material.icons.outlined.Engineering
+import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,13 +42,20 @@ import com.campus.service.data.model.Profile
 import com.campus.service.data.model.Ticket
 import com.campus.service.data.model.TicketPriority
 import com.campus.service.data.model.TicketStatus
+import com.campus.service.ui.common.AppCard
 import com.campus.service.ui.common.DropdownField
-import com.campus.service.ui.common.LiveIndicator
+import com.campus.service.ui.common.EmptyState
+import com.campus.service.ui.common.IconInfoRow
 import com.campus.service.ui.common.LoadingButton
 import com.campus.service.ui.common.MessageText
-import com.campus.service.ui.common.StatusBadge
-import com.campus.service.ui.common.StatusTimeline
-import com.campus.service.ui.common.StorageImage
+import com.campus.service.ui.common.ScreenHeaderRow
+import com.campus.service.ui.common.SectionTitle
+import com.campus.service.ui.common.SkeletonList
+import com.campus.service.ui.common.TicketDescriptionCard
+import com.campus.service.ui.common.TicketDetailHeader
+import com.campus.service.ui.common.TicketImagesCard
+import com.campus.service.ui.common.TicketListCard
+import com.campus.service.ui.common.TicketTimelineCard
 import com.campus.service.util.formatDateTime
 
 private data class TechOption(val id: String?, val label: String)
@@ -67,10 +78,15 @@ fun AdminDispatchScreen(vm: AdminDispatchViewModel) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
     ) {
-        Text("Điều phối phiếu", style = MaterialTheme.typography.headlineMedium)
-        LiveIndicator(state.live)
+        ScreenHeaderRow(
+            title = "Điều phối phiếu",
+            subtitle = "${state.visible.size} phiếu",
+            live = state.live,
+            loading = state.loading,
+            onRefresh = { vm.refresh() }
+        )
         Spacer(Modifier.height(8.dp))
 
         Row(
@@ -94,64 +110,29 @@ fun AdminDispatchScreen(vm: AdminDispatchViewModel) {
 
         MessageText(error = state.error, info = null)
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = { vm.refresh() }, enabled = !state.loading) {
-                Text("Làm mới")
-            }
-            if (state.loading) {
-                Spacer(Modifier.padding(horizontal = 8.dp))
-                CircularProgressIndicator(modifier = Modifier.height(24.dp))
-            }
-        }
-        Spacer(Modifier.height(8.dp))
-
         val items = state.visible
-        if (items.isEmpty() && !state.loading) {
-            Text("Không có phiếu nào ở trạng thái này.")
-        } else {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        when {
+            state.loading && items.isEmpty() -> SkeletonList()
+            items.isEmpty() -> EmptyState(
+                icon = Icons.Outlined.Inbox,
+                title = "Không có phiếu",
+                message = "Không có phiếu nào ở trạng thái này."
+            )
+            else -> LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
                 items(items, key = { it.id }) { ticket ->
-                    DispatchCard(ticket = ticket, onClick = { vm.openDetail(ticket) })
+                    TicketListCard(
+                        ticket = ticket,
+                        onClick = { vm.openDetail(ticket) },
+                        lines = listOf(
+                            "KTV: ${ticket.assigneeLabel}",
+                            "${ticket.creatorLabel} • ${formatDateTime(ticket.createdAt)}"
+                        )
+                    )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun DispatchCard(ticket: Ticket, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    ticket.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(Modifier.padding(horizontal = 4.dp))
-                StatusBadge(ticket.statusEnum)
-            }
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "${ticket.areaLabel} • ${ticket.categoryLabel}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                "Ưu tiên: ${ticket.priorityEnum.label} • KTV: ${ticket.assigneeLabel}",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(
-                "${ticket.creatorLabel} • ${formatDateTime(ticket.createdAt)}",
-                style = MaterialTheme.typography.bodySmall
-            )
         }
     }
 }
@@ -178,118 +159,96 @@ private fun DispatchDetail(vm: AdminDispatchViewModel, ticket: Ticket) {
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
     ) {
-        TextButton(onClick = { vm.closeDetail() }) { Text("< Quay lại danh sách") }
-
-        Text(ticket.title, style = MaterialTheme.typography.headlineSmall)
-        LiveIndicator(state.live)
-        Spacer(Modifier.height(8.dp))
-        StatusBadge(ticket.statusEnum)
-        Spacer(Modifier.height(12.dp))
-
-        InfoRow("Người gửi", ticket.creatorLabel)
-        InfoRow("Khu vực", ticket.areaLabel)
-        InfoRow("Loại lỗi", ticket.categoryLabel)
-        InfoRow("Gửi lúc", formatDateTime(ticket.createdAt))
-        InfoRow("KTV hiện tại", ticket.assigneeLabel)
-        InfoRow("ETA hiện tại", formatDateTime(ticket.eta))
-        InfoRow("Công khai", if (ticket.isPublic) "Có" else "Không")
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-        Text("Điều phối", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(8.dp))
-
-        DropdownField(
-            label = "Mức ưu tiên",
-            items = TicketPriority.entries.toList(),
-            selected = priority,
-            itemLabel = { it.label },
-            onSelected = { priority = it },
-            enabled = editable,
-            modifier = Modifier.fillMaxWidth()
+        TicketDetailHeader(
+            title = ticket.title,
+            status = ticket.statusEnum,
+            onBack = { vm.closeDetail() },
+            overdue = ticket.isOverdue
         )
-        Spacer(Modifier.height(8.dp))
-        DropdownField(
-            label = "Kỹ thuật viên",
-            items = techOptions,
-            selected = currentTech,
-            itemLabel = { it.label },
-            onSelected = { technicianId = it.id },
-            enabled = editable,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(8.dp))
-        DropdownField(
-            label = "Thời gian dự kiến xong (ETA)",
-            items = ETA_CHOICES,
-            selected = eta,
-            itemLabel = { it.label },
-            onSelected = { eta = it },
-            enabled = editable,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Hiển thị trên bảng tin công khai")
-            Switch(checked = isPublic, onCheckedChange = { isPublic = it }, enabled = editable)
-        }
-        Spacer(Modifier.height(12.dp))
+            AppCard(modifier = Modifier.fillMaxWidth()) {
+                IconInfoRow(Icons.Outlined.Person, "Người gửi", ticket.creatorLabel)
+                IconInfoRow(Icons.Outlined.Place, "Khu vực", ticket.areaLabel)
+                IconInfoRow(Icons.Outlined.Category, "Loại lỗi", ticket.categoryLabel)
+                IconInfoRow(Icons.Outlined.Schedule, "Gửi lúc", formatDateTime(ticket.createdAt))
+                IconInfoRow(Icons.Outlined.Engineering, "KTV hiện tại", ticket.assigneeLabel)
+                IconInfoRow(Icons.Outlined.Event, "ETA hiện tại", formatDateTime(ticket.eta))
+                IconInfoRow(Icons.Outlined.Public, "Công khai", if (ticket.isPublic) "Có" else "Không")
+            }
 
-        MessageText(error = state.error, info = state.info)
-        if (editable) {
-            LoadingButton(
-                text = "Lưu thay đổi",
-                loading = state.saving,
-                onClick = { vm.save(ticket, priority, technicianId, eta, isPublic) }
-            )
-        } else {
-            Text("Phiếu đã đóng, không thể chỉnh sửa.")
-        }
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-        Text("Tiến trình xử lý", style = MaterialTheme.typography.titleSmall)
-        Spacer(Modifier.height(4.dp))
-        StatusTimeline(events = state.events, current = ticket.statusEnum)
-
-        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-        Text("Mô tả", style = MaterialTheme.typography.titleSmall)
-        Text(ticket.description?.ifBlank { "(không có)" } ?: "(không có)")
-
-        if (ticket.images.isNotEmpty()) {
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
-            Text("Ảnh đính kèm (${ticket.images.size})", style = MaterialTheme.typography.titleSmall)
-            Spacer(Modifier.height(8.dp))
-            ticket.images.forEach { image ->
-                StorageImage(
-                    path = image.path,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
+            AppCard(modifier = Modifier.fillMaxWidth()) {
+                SectionTitle(text = "Điều phối")
+                Spacer(Modifier.height(10.dp))
+                DropdownField(
+                    label = "Mức ưu tiên",
+                    items = TicketPriority.entries.toList(),
+                    selected = priority,
+                    itemLabel = { it.label },
+                    onSelected = { priority = it },
+                    enabled = editable,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(8.dp))
+                DropdownField(
+                    label = "Kỹ thuật viên",
+                    items = techOptions,
+                    selected = currentTech,
+                    itemLabel = { it.label },
+                    onSelected = { technicianId = it.id },
+                    enabled = editable,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                DropdownField(
+                    label = "Thời gian dự kiến xong (ETA)",
+                    items = ETA_CHOICES,
+                    selected = eta,
+                    itemLabel = { it.label },
+                    onSelected = { eta = it },
+                    enabled = editable,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Hiển thị trên bảng tin công khai",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Switch(checked = isPublic, onCheckedChange = { isPublic = it }, enabled = editable)
+                }
+                Spacer(Modifier.height(12.dp))
+                MessageText(error = state.error, info = state.info)
+                if (editable) {
+                    LoadingButton(
+                        text = "Lưu thay đổi",
+                        loading = state.saving,
+                        onClick = { vm.save(ticket, priority, technicianId, eta, isPublic) }
+                    )
+                } else {
+                    Text(
+                        "Phiếu đã đóng, không thể chỉnh sửa.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
+
+            TicketTimelineCard(events = state.events, current = ticket.statusEnum, live = state.live)
+            TicketDescriptionCard(ticket)
+            TicketImagesCard(ticket)
         }
     }
 }
 
 private fun techLabel(profile: Profile): String =
     profile.fullName?.ifBlank { null } ?: profile.email ?: profile.id
-
-@Composable
-private fun InfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-        Spacer(Modifier.padding(horizontal = 8.dp))
-        Text(value, style = MaterialTheme.typography.bodyMedium)
-    }
-}
