@@ -7,6 +7,8 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -46,32 +48,38 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CampusTheme {
-                val state by authViewModel.state.collectAsState()
-                val profile = state.profile
+                // Nền toàn màn hình theo giao diện (cần cho chế độ tối ở màn Đăng nhập)
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val state by authViewModel.state.collectAsState()
+                    val profile = state.profile
 
-                when {
-                    state.initializing -> Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                    when {
+                        state.initializing -> Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                        profile != null -> MainScaffold(
+                            profile = profile,
+                            profileViewModel = profileViewModel,
+                            createTicketViewModel = createTicketViewModel,
+                            ticketHistoryViewModel = ticketHistoryViewModel,
+                            homeViewModel = homeViewModel,
+                            adminDashboardViewModel = adminDashboardViewModel,
+                            adminDispatchViewModel = adminDispatchViewModel,
+                            adminHistoryViewModel = adminHistoryViewModel,
+                            techJobsViewModel = techJobsViewModel,
+                            radarViewModel = radarViewModel,
+                            techHistoryViewModel = techHistoryViewModel,
+                            notificationViewModel = notificationViewModel,
+                            onSignOut = authViewModel::signOut
+                        )
+                        else -> AuthScreen(state = state, vm = authViewModel)
                     }
-                    profile != null -> MainScaffold(
-                        profile = profile,
-                        profileViewModel = profileViewModel,
-                        createTicketViewModel = createTicketViewModel,
-                        ticketHistoryViewModel = ticketHistoryViewModel,
-                        homeViewModel = homeViewModel,
-                        adminDashboardViewModel = adminDashboardViewModel,
-                        adminDispatchViewModel = adminDispatchViewModel,
-                        adminHistoryViewModel = adminHistoryViewModel,
-                        techJobsViewModel = techJobsViewModel,
-                        radarViewModel = radarViewModel,
-                        techHistoryViewModel = techHistoryViewModel,
-                        notificationViewModel = notificationViewModel,
-                        onSignOut = authViewModel::signOut
-                    )
-                    else -> AuthScreen(state = state, vm = authViewModel)
                 }
             }
         }
