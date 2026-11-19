@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import com.campus.service.data.model.Ticket
 import com.campus.service.data.model.TicketEvent
 import com.campus.service.data.model.TicketStatus
+import com.campus.service.data.repository.TicketAcceptanceRepository
 import com.campus.service.ui.common.AppCard
 import com.campus.service.ui.common.AppTextField
 import com.campus.service.ui.common.EmptyState
@@ -89,6 +90,7 @@ fun TicketHistoryScreen(userId: String, vm: TicketHistoryViewModel) {
             actionError = state.actionError,
             info = state.info,
             onAccept = { rating, feedback -> vm.accept(selected, rating, feedback) },
+            onReopen = { reason -> vm.reopen(selected, reason) },
             onBack = { vm.closeDetail() }
         )
         return
@@ -220,7 +222,7 @@ private fun TicketCard(ticket: Ticket, onClick: () -> Unit) {
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    "Đã khắc phục xong, bấm để nghiệm thu",
+                    "Đã khắc phục, bấm để nghiệm thu hoặc mở lại",
                     style = MaterialTheme.typography.labelMedium,
                     color = Campus.extra.success
                 )
@@ -238,6 +240,7 @@ private fun TicketDetail(
     actionError: String?,
     info: String?,
     onAccept: (Int, String) -> Unit,
+    onReopen: (String) -> Unit,
     onBack: () -> Unit
 ) {
     Column(
@@ -285,13 +288,14 @@ private fun TicketDetail(
                 PriorityTag(ticket.priorityEnum)
             }
 
-            // Nghiệm thu: chỉ khi phiếu đã khắc phục
+            // Xác nhận kết quả: chỉ khi phiếu đã khắc phục (nghiệm thu hoặc mở lại)
             if (ticket.statusEnum == TicketStatus.RESOLVED) {
-                AcceptanceForm(
+                ResolvedActions(
                     key = ticket.id,
                     accepting = accepting,
                     error = actionError,
-                    onAccept = onAccept
+                    onAccept = onAccept,
+                    onReopen = onReopen
                 )
             } else if (info != null) {
                 AppCard(modifier = Modifier.fillMaxWidth()) {
@@ -299,7 +303,7 @@ private fun TicketDetail(
                 }
             }
 
-            // Timeline
+            // Timeline (có mốc "Mở lại phiếu" kèm lý do)
             AppCard(modifier = Modifier.fillMaxWidth()) {
                 SectionTitle(text = "Tiến trình xử lý", trailing = { LiveIndicator(live) })
                 Spacer(Modifier.height(8.dp))
@@ -390,49 +394,109 @@ private fun StarRow(rating: Int, onSelect: ((Int) -> Unit)?, enabled: Boolean) {
     }
 }
 
+/**
+ * Khi phiếu đã khắc phục, sinh viên chọn một trong hai:
+ * - Đạt: chọn sao, nhận xét, nghiệm thu và đóng phiếu.
+ * - Chưa đạt: nhập lý do (10 đến 300 ký tự), phiếu quay lại Đang xử lý.
+ */
 @Composable
-private fun AcceptanceForm(
+private fun ResolvedActions(
     key: String,
     accepting: Boolean,
     error: String?,
-    onAccept: (Int, String) -> Unit
+    onAccept: (Int, String) -> Unit,
+    onReopen: (String) -> Unit
 ) {
+    var reopenMode by remember(key) { mutableStateOf(false) }
     var rating by remember(key) { mutableIntStateOf(0) }
     var feedback by remember(key) { mutableStateOf("") }
+    var reason by remember(key) { mutableStateOf("") }
+
+    val min = TicketAcceptanceRepository.REOPEN_MIN
+    val max = TicketAcceptanceRepository.REOPEN_MAX
 
     AppCard(modifier = Modifier.fillMaxWidth()) {
-        SectionTitle(text = "Nghiệm thu")
+        SectionTitle(text = "Xác nhận kết quả")
         Spacer(Modifier.height(4.dp))
         Text(
-            "Sự cố đã được báo khắc phục. Vui lòng đánh giá để đóng phiếu.",
+            "Kỹ thuật viên đã báo khắc phục. Bạn kiểm tra rồi chọn một trong hai.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(Modifier.height(8.dp))
-        StarRow(rating = rating, onSelect = { rating = it }, enabled = !accepting)
-        if (rating == 0) {
-            Text(
-                "Chọn số sao để nghiệm thu.",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = !reopenMode,
+                onClick = { reopenMode = false },
+                enabled = !accepting,
+                label = { Text("Đạt, nghiệm thu") }
+            )
+            FilterChip(
+                selected = reopenMode,
+                onClick = { reopenMode = true },
+                enabled = !accepting,
+                label = { Text("Chưa đạt, mở lại") }
             )
         }
         Spacer(Modifier.height(8.dp))
-        AppTextField(
-            value = feedback,
-            onValueChange = { feedback = it },
-            label = "Nhận xét (không bắt buộc)",
-            singleLine = false,
-            minLines = 2,
-            readOnly = accepting,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(8.dp))
-        MessageText(error = error, info = null)
-        LoadingButton(
-            text = "Nghiệm thu và đóng phiếu",
-            loading = accepting,
-            onClick = { onAccept(rating, feedback) }
-        )
+
+        if (!reopenMode) {
+            StarRow(rating = rating, onSelect = { rating = it }, enabled = !accepting)
+            if (rating == 0) {
+                Text(
+                    "Chọn số sao để nghiệm thu.",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+            AppTextField(
+                value = feedback,
+                onValueChange = { feedback = it },
+                label = "Nhận xét (không bắt buộc)",
+                singleLine = false,
+                minLines = 2,
+                readOnly = accepting,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+            MessageText(error = error, info = null)
+            LoadingButton(
+                text = "Nghiệm thu và đóng phiếu",
+                loading = accepting,
+                onClick = { onAccept(rating, feedback) }
+            )
+        } else {
+            Text(
+                "Phiếu sẽ quay lại trạng thái Đang xử lý, cùng kỹ thuật viên cũ. " +
+                        "Lý do của bạn hiện trong tiến trình xử lý.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(8.dp))
+            AppTextField(
+                value = reason,
+                onValueChange = { if (it.length <= max) reason = it },
+                label = "Lý do chưa đạt",
+                singleLine = false,
+                minLines = 3,
+                readOnly = accepting,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                "${reason.trim().length}/$max ký tự (tối thiểu $min)",
+                style = MaterialTheme.typography.labelMedium,
+                color = if (reason.trim().length in 1 until min)
+                    MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(Modifier.height(8.dp))
+            MessageText(error = error, info = null)
+            LoadingButton(
+                text = "Mở lại phiếu",
+                loading = accepting,
+                onClick = { onReopen(reason) }
+            )
+        }
     }
 }

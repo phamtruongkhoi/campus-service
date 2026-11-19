@@ -28,6 +28,7 @@ data class TicketHistoryUiState(
     val filter: TicketStatus? = null,
     val events: List<TicketEvent> = emptyList(),
     val live: Boolean = false,
+    /** Đang gửi nghiệm thu hoặc mở lại phiếu. */
     val accepting: Boolean = false,
     val actionError: String? = null,
     val info: String? = null
@@ -141,6 +142,37 @@ class TicketHistoryViewModel : ViewModel() {
                 throw e
             } catch (e: Exception) {
                 _state.update { it.copy(actionError = "Không đóng được phiếu: ${e.message}") }
+            } finally {
+                _state.update { it.copy(accepting = false) }
+            }
+        }
+    }
+
+    /** Mở lại phiếu chưa đạt (Resolved -> In progress), lý do bắt buộc 10 đến 300 ký tự. */
+    fun reopen(ticket: Ticket, reason: String) {
+        val text = reason.trim()
+        val min = TicketAcceptanceRepository.REOPEN_MIN
+        val max = TicketAcceptanceRepository.REOPEN_MAX
+        if (text.length < min) {
+            _state.update { it.copy(actionError = "Lý do cần ít nhất $min ký tự.") }
+            return
+        }
+        if (text.length > max) {
+            _state.update { it.copy(actionError = "Lý do tối đa $max ký tự.") }
+            return
+        }
+        viewModelScope.launch {
+            _state.update { it.copy(accepting = true, actionError = null, info = null) }
+            try {
+                TicketAcceptanceRepository.reopen(ticket.id, text)
+                reload()
+                _state.update {
+                    it.copy(info = "Đã mở lại phiếu. Kỹ thuật viên sẽ xử lý lại.")
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _state.update { it.copy(actionError = "Không mở lại được phiếu: ${e.message}") }
             } finally {
                 _state.update { it.copy(accepting = false) }
             }
