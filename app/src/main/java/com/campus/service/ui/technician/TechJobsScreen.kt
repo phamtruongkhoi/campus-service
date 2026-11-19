@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.campus.service.data.model.Ticket
 import com.campus.service.data.model.TicketStatus
 import com.campus.service.ui.common.AppCard
+import com.campus.service.ui.common.CommentSection
 import com.campus.service.ui.common.EmptyState
 import com.campus.service.ui.common.IconInfoRow
 import com.campus.service.ui.common.LoadingButton
@@ -186,6 +187,10 @@ private fun JobDetail(vm: TechJobsViewModel, ticket: Ticket) {
             TicketTimelineCard(events = state.events, current = ticket.statusEnum, live = state.live)
             TicketDescriptionCard(ticket)
             TicketImagesCard(ticket, title = "Ảnh hiện trường")
+            CommentSection(
+                ticketId = ticket.id,
+                canPost = ticket.statusEnum != TicketStatus.CLOSED
+            )
         }
     }
 }

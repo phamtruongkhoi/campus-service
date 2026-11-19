@@ -21,6 +21,9 @@ object TicketRealtime {
     /** Tín hiệu khi bảng tin công khai (public_incidents) thay đổi. */
     fun incidentChanges(): Flow<Unit> = tableChanges("public_incidents")
 
+    /** Tín hiệu khi bảng bình luận (ticket_comments) thay đổi. */
+    fun commentChanges(): Flow<Unit> = tableChanges("ticket_comments")
+
     /**
      * Phát một tín hiệu (Unit) khi đăng ký kênh thành công và mỗi khi một trong các bảng
      * thay đổi. Người dùng chỉ nhận sự kiện của dòng họ được phép SELECT theo RLS.
