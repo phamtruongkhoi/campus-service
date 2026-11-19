@@ -90,14 +90,19 @@ class NotificationViewModel : ViewModel() {
             val old = previous[ticket.id]?.statusEnum
             val now = ticket.statusEnum
             val title = "“${ticket.title}”"
+            // Sinh viên mở lại phiếu: Resolved -> In progress
+            val reopened = old == TicketStatus.RESOLVED && now == TicketStatus.IN_PROGRESS
             when (role) {
                 UserRole.STUDENT -> {
-                    if (old != null && old != now && now != TicketStatus.CLOSED) {
+                    // Không báo cho chính người vừa mở lại
+                    if (old != null && old != now && now != TicketStatus.CLOSED && !reopened) {
                         messages += "Phiếu $title chuyển sang: ${now.label}"
                     }
                 }
                 UserRole.TECHNICIAN -> {
-                    if (old == null && now == TicketStatus.ASSIGNED) {
+                    if (reopened) {
+                        messages += "Sinh viên đã mở lại phiếu $title, cần xử lý lại"
+                    } else if (old == null && now == TicketStatus.ASSIGNED) {
                         messages += "Bạn được giao việc mới: $title"
                     } else if (old != null && old != TicketStatus.CLOSED && now == TicketStatus.CLOSED) {
                         val stars = ticket.rating?.let { " ($it★)" } ?: ""
@@ -107,6 +112,8 @@ class NotificationViewModel : ViewModel() {
                 UserRole.ADMIN -> {
                     if (old == null) {
                         messages += "Có phiếu mới: $title"
+                    } else if (reopened) {
+                        messages += "Sinh viên đã mở lại phiếu $title"
                     } else if (old != now && (now == TicketStatus.IN_PROGRESS ||
                                 now == TicketStatus.RESOLVED || now == TicketStatus.CLOSED)
                     ) {
