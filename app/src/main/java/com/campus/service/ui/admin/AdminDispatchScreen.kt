@@ -43,6 +43,7 @@ import com.campus.service.data.model.Ticket
 import com.campus.service.data.model.TicketPriority
 import com.campus.service.data.model.TicketStatus
 import com.campus.service.ui.common.AppCard
+import com.campus.service.ui.common.CommentSection
 import com.campus.service.ui.common.DropdownField
 import com.campus.service.ui.common.EmptyState
 import com.campus.service.ui.common.IconInfoRow
@@ -246,6 +247,10 @@ private fun DispatchDetail(vm: AdminDispatchViewModel, ticket: Ticket) {
             TicketTimelineCard(events = state.events, current = ticket.statusEnum, live = state.live)
             TicketDescriptionCard(ticket)
             TicketImagesCard(ticket)
+            CommentSection(
+                ticketId = ticket.id,
+                canPost = ticket.statusEnum != TicketStatus.CLOSED
+            )
         }
     }
 }

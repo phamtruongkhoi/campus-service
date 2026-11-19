@@ -7,12 +7,14 @@ import com.campus.service.data.model.Ticket
 import com.campus.service.data.model.TicketStatus
 import com.campus.service.data.model.UserRole
 import com.campus.service.data.repository.AdminTicketRepository
+import com.campus.service.data.repository.CommentRepository
 import com.campus.service.data.repository.TechnicianTicketRepository
 import com.campus.service.data.repository.TicketRealtime
 import com.campus.service.data.repository.TicketRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -31,9 +33,14 @@ class NotificationViewModel : ViewModel() {
     private var watchedUserId: String? = null
     private var job: Job? = null
 
+    /** Phiếu của người dùng ở lần tải gần nhất, để tra tiêu đề khi có bình luận mới. */
+    @Volatile
+    private var knownTickets: Map<String, Ticket> = emptyMap()
+
     fun watch(profile: Profile) {
         if (watchedUserId == profile.id && job?.isActive == true) return
         job?.cancel()
+        knownTickets = emptyMap()
         watchedUserId = profile.id
         job = viewModelScope.launch { observe(profile) }
     }
@@ -41,11 +48,18 @@ class NotificationViewModel : ViewModel() {
     fun stop() {
         job?.cancel()
         job = null
+        knownTickets = emptyMap()
         watchedUserId = null
     }
 
+    /** Theo dõi song song: đổi trạng thái phiếu và bình luận mới. */
+    private suspend fun observe(profile: Profile) = coroutineScope {
+        launch { watchComments(profile) }
+        watchTickets(profile)
+    }
+
     @OptIn(FlowPreview::class)
-    private suspend fun observe(profile: Profile) {
+    private suspend fun watchTickets(profile: Profile) {
         var known: Map<String, Ticket>? = null
         try {
             TicketRealtime.changes()
@@ -65,12 +79,51 @@ class NotificationViewModel : ViewModel() {
                             _events.tryEmit(it)
                         }
                     }
-                    known = current.associateBy { it.id }
+                    val map = current.associateBy { it.id }
+                    known = map
+                    knownTickets = map
                 }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             // Mất kết nối cập nhật trực tiếp: bỏ qua, các màn hình đã tự báo lỗi
+        }
+    }
+
+    /**
+     * Thông báo khi người khác bình luận ở phiếu của mình (không báo cho chính người viết).
+     * Lần tải đầu chỉ ghi nhận các bình luận đang có.
+     */
+    @OptIn(FlowPreview::class)
+    private suspend fun watchComments(profile: Profile) {
+        var seen: Set<String>? = null
+        try {
+            CommentRepository.changes()
+                .debounce(500)
+                .collect {
+                    val recent = try {
+                        CommentRepository.getRecent()
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        return@collect
+                    }
+                    val previous = seen
+                    if (previous != null) {
+                        recent
+                            .filter { it.id !in previous && it.authorId != profile.id }
+                            .forEach { comment ->
+                                val ticket = knownTickets[comment.ticketId] ?: return@forEach
+                                val who = comment.authorName?.ifBlank { null } ?: "Có người"
+                                _events.tryEmit("$who đã bình luận ở phiếu “${ticket.title}”")
+                            }
+                    }
+                    seen = recent.map { it.id }.toSet()
+                }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Mất kết nối cập nhật trực tiếp: bỏ qua
         }
     }
 

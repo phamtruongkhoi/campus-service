@@ -53,6 +53,7 @@ import com.campus.service.data.model.TicketEvent
 import com.campus.service.data.model.TicketStatus
 import com.campus.service.data.repository.TicketAcceptanceRepository
 import com.campus.service.ui.common.AppCard
+import com.campus.service.ui.common.CommentSection
 import com.campus.service.ui.common.AppTextField
 import com.campus.service.ui.common.EmptyState
 import com.campus.service.ui.common.GradientHeader
@@ -337,6 +338,12 @@ private fun TicketDetail(
                     }
                 }
             }
+
+            // Bình luận (khóa khi phiếu đã đóng)
+            CommentSection(
+                ticketId = ticket.id,
+                canPost = ticket.statusEnum != TicketStatus.CLOSED
+            )
 
             // Đánh giá đã gửi
             if (ticket.rating != null || !ticket.feedback.isNullOrBlank()) {
