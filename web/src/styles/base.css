@@ -1,0 +1,338 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-family:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ---------- Thẻ ---------- */
+.card {
+  background: var(--card);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* ---------- Nút ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-button);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--outline-variant);
+  color: var(--text);
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Ô nhập ---------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.field-box {
+  position: relative;
+  display: flex;
+}
+
+.field-box input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  background: var(--background);
+  color: var(--text);
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-button);
+  font: inherit;
+}
+
+.field-box input::placeholder {
+  color: var(--muted);
+}
+
+.field-box input.has-error {
+  border-color: var(--error);
+}
+
+.field-toggle {
+  position: absolute;
+  top: 0;
+  right: 4px;
+  bottom: 0;
+  padding: 0 12px;
+  background: none;
+  border: 0;
+  color: var(--primary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.field-error {
+  color: var(--error);
+  font-size: 0.8125rem;
+}
+
+.field-hint {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+/* ---------- Thông báo ---------- */
+.notice {
+  padding: 10px 14px;
+  border-radius: var(--radius-button);
+  font-size: 0.9rem;
+}
+
+.notice-error {
+  background: var(--error-container);
+  color: var(--error);
+}
+
+.notice-info {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+.notice-success {
+  background: var(--status-resolved-container);
+  color: var(--status-resolved-on);
+}
+
+/* ---------- Trang xác thực ---------- */
+.auth-page {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 24px 16px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  overflow: hidden;
+}
+
+.auth-header {
+  padding: 28px 24px 24px;
+  background: linear-gradient(135deg, var(--header-from), var(--header-to));
+  color: #ffffff;
+}
+
+.auth-brand {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.auth-header h1 {
+  margin-top: 6px;
+  font-size: 1.5rem;
+}
+
+.auth-header p {
+  margin-top: 4px;
+  font-size: 0.9375rem;
+  opacity: 0.9;
+}
+
+.auth-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+  font-size: 0.9375rem;
+}
+
+.otp-input {
+  letter-spacing: 0.35em;
+  text-align: center;
+  font-size: 1.25rem;
+}
+
+/* ---------- Toàn trang ---------- */
+.fullpage {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 24px 16px;
+  color: var(--muted);
+}
+
+.fullpage .spinner {
+  width: 32px;
+  height: 32px;
+  border-width: 3px;
+  color: var(--primary);
+}
+
+.fullpage-box {
+  display: flex;
+  max-width: 440px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 24px;
+  color: var(--text);
+}
+
+.fullpage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.home-page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+.home-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px;
+}
+
+.home-card dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.home-card dt {
+  color: var(--muted);
+}
+
+.home-card dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .auth-page {
+    padding: 0;
+    align-items: start;
+  }
+
+  .auth-card {
+    max-width: none;
+    min-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
