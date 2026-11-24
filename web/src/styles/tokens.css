@@ -1,0 +1,96 @@
+/* Bộ token giao diện dùng chung Android và web (HANDOFF §5f).
+   Sáng là mặc định; tối bật bằng data-theme="dark" trên <html> (xem src/theme.ts). */
+
+:root {
+  color-scheme: light;
+
+  --primary: #2563eb;
+  --on-primary: #ffffff; /* không có trong §5f: chữ trên nút primary */
+  --primary-container: #dbe7ff;
+  --on-primary-container: #0b2a6b;
+  --secondary: #0d9488;
+
+  --background: #f4f7fc;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #55627a;
+  --outline: #8a96ab;
+  --outline-variant: #d5ddeb;
+
+  --error: #dc2626;
+  --error-container: #ffe0e0;
+
+  --header-from: #2563eb;
+  --header-to: #0d9488;
+
+  --status-open: #64748b;
+  --status-open-container: #e8ecf3;
+  --status-open-on: #3b4658;
+  --status-assigned: #2563eb;
+  --status-assigned-container: #dbe7ff;
+  --status-assigned-on: #0b2a6b;
+  --status-in-progress: #d97706;
+  --status-in-progress-container: #ffebc7;
+  --status-in-progress-on: #5a3300;
+  --status-resolved: #16a34a;
+  --status-resolved-container: #d9f5e3;
+  --status-resolved-on: #0b4a22;
+  --status-closed: #475569;
+  --status-closed-container: #dde3ec;
+  --status-closed-on: #1f2937;
+
+  --priority-low: #64748b;
+  --priority-medium: #d97706;
+  --priority-high: #dc2626;
+
+  /* Hình khối */
+  --radius-card: 16px;
+  --radius-button: 14px;
+  --radius-chip: 999px;
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 6%), 0 4px 16px rgb(15 23 42 / 6%);
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --primary: #6ea0ff;
+  --on-primary: #0b1220; /* không có trong §5f: chữ trên nút primary */
+  --primary-container: #1b3a7a;
+  --on-primary-container: #dbe7ff;
+  --secondary: #4fd1c5;
+
+  --background: #0b1220;
+  --card: #18233a;
+  --text: #e6ebf5;
+  --muted: #a3afc5;
+  --outline: #6b7890;
+  --outline-variant: #2a364d;
+
+  --error: #ff8a8a;
+  --error-container: #5c1a1a;
+
+  --header-from: #1d4ed8;
+  --header-to: #0f766e;
+
+  --status-open: #94a3b8;
+  --status-open-container: #263146;
+  --status-open-on: #d3dbe8;
+  --status-assigned: #6ea0ff;
+  --status-assigned-container: #1b3a7a;
+  --status-assigned-on: #dbe7ff;
+  --status-in-progress: #fbbf24;
+  --status-in-progress-container: #4d3300;
+  --status-in-progress-on: #ffe9c2;
+  --status-resolved: #4ade80;
+  --status-resolved-container: #0f4228;
+  --status-resolved-on: #d1f7df;
+  --status-closed: #a8b4c7;
+  --status-closed-container: #2a364d;
+  --status-closed-on: #e2e8f2;
+
+  --priority-low: #94a3b8;
+  --priority-medium: #fbbf24;
+  --priority-high: #ff8a8a;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
+}
