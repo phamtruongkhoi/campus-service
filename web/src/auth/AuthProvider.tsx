@@ -68,8 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut()
   }, [])
 
+  // Tải lại hồ sơ âm thầm (không bật loading) để trang đang mở không bị thay bằng vòng xoay.
   const refreshProfile = useCallback(() => {
-    setLoadedFor(null)
     setReloadTick((tick) => tick + 1)
   }, [])
 
