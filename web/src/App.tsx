@@ -7,6 +7,9 @@ import { AppShell } from './layout/AppShell'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { AdminDispatch } from './pages/admin/AdminDispatch'
 import { AdminHistory } from './pages/admin/AdminHistory'
+import { AdminManage } from './pages/admin/manage/AdminManage'
+import { CatalogTab } from './pages/admin/manage/CatalogTab'
+import { UsersTab } from './pages/admin/manage/UsersTab'
 import { AdminTechnicianDetail } from './pages/admin/AdminTechnicianDetail'
 import { AdminTechnicians } from './pages/admin/AdminTechnicians'
 import { ForgotPassword } from './pages/auth/ForgotPassword'
@@ -54,6 +57,12 @@ export default function App() {
                 <Route path="/admin/history" element={<AdminHistory />} />
                 <Route path="/admin/technicians" element={<AdminTechnicians />} />
                 <Route path="/admin/technicians/:id" element={<AdminTechnicianDetail />} />
+                <Route path="/admin/manage" element={<AdminManage />}>
+                  <Route index element={<Navigate to="areas" replace />} />
+                  <Route path="areas" element={<CatalogTab key="area" kind="area" />} />
+                  <Route path="categories" element={<CatalogTab key="category" kind="category" />} />
+                  <Route path="users" element={<UsersTab />} />
+                </Route>
               </Route>
 
               <Route element={<RequireRole role="technician" />}>
