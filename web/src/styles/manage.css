@@ -1,0 +1,129 @@
+/* Quản trị (5.4). Dùng lại .panel, .card, .btn, .field, .notice, .chart-empty, .chart-note, .tech-toolbar. */
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.tab {
+  padding: 10px 16px;
+  border-bottom: 3px solid transparent;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.tab:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.tab.active {
+  border-bottom-color: var(--primary);
+  color: var(--text);
+}
+
+.panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inline-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 520px;
+  margin: 12px 0;
+  padding: 16px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px;
+}
+
+.inline-actions,
+.manage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.manage-list {
+  display: flex;
+  flex-direction: column;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.manage-row {
+  display: flex;
+  align-items: center;
+  gap: 12px 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.manage-row:last-child {
+  border-bottom: 0;
+}
+
+.manage-row-wrap {
+  flex-wrap: wrap;
+}
+
+.manage-full {
+  flex-basis: 100%;
+}
+
+.manage-main {
+  display: flex;
+  min-width: 160px;
+  flex: 1;
+  flex-direction: column;
+}
+
+.manage-name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.manage-sub {
+  color: var(--muted);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.manage-count {
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.role-tag {
+  padding: 2px 10px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.field-box textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+
+@media (max-width: 480px) {
+  .manage-row {
+    flex-wrap: wrap;
+  }
+}
