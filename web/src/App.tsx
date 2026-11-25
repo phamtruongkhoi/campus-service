@@ -20,8 +20,10 @@ import { Home } from './pages/Home'
 import { StudentCreate } from './pages/student/StudentCreate'
 import { StudentFeed } from './pages/student/StudentFeed'
 import { StudentTickets } from './pages/student/StudentTickets'
-import { Placeholder } from './pages/Placeholder'
 import { Profile } from './pages/Profile'
+import { TechHistory } from './pages/technician/TechHistory'
+import { TechJobs } from './pages/technician/TechJobs'
+import { TechRadar } from './pages/technician/TechRadar'
 
 export default function App() {
   return (
@@ -63,15 +65,9 @@ export default function App() {
               </Route>
 
               <Route element={<RequireRole role="technician" />}>
-                <Route
-                  path="/technician"
-                  element={
-                    <Placeholder
-                      title="Kỹ thuật viên"
-                      note="Radar, công việc và lịch sử sẽ làm ở mục 6.2."
-                    />
-                  }
-                />
+                <Route path="/technician" element={<TechRadar />} />
+                <Route path="/technician/jobs" element={<TechJobs />} />
+                <Route path="/technician/history" element={<TechHistory />} />
               </Route>
             </Route>
           </Route>
