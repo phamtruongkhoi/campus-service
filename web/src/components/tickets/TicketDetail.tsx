@@ -2,10 +2,11 @@ import type { ReactNode } from 'react'
 import { ticketImageUrl } from '../../data/images'
 import { useTicketEvents } from '../../hooks/useTicketEvents'
 import { categoryLabel, creatorLabel, formatDateTime, starsText } from '../../lib/ticketFormat'
-import { areaLabel, assigneeLabel, isOverdue } from '../../lib/ticketLogic'
+import { areaLabel, assigneeLabel, formatDuration, isOverdue, overdueMillis } from '../../lib/ticketLogic'
 import type { Ticket } from '../../types/database'
 import { PriorityTag } from '../PriorityTag'
 import { StatusBadge } from '../StatusBadge'
+import { CommentsSection } from './CommentsSection'
 import { StatusTimeline } from './StatusTimeline'
 
 interface TicketDetailProps {
@@ -28,6 +29,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 export function TicketDetail({ ticket, now, children }: TicketDetailProps) {
   const { events, loading, error } = useTicketEvents(ticket.id, ticket.updated_at)
   const overdue = isOverdue(ticket, now)
+  const lateBy = overdueMillis(ticket, now)
 
   return (
     <article className="detail card">
@@ -36,7 +38,9 @@ export function TicketDetail({ ticket, now, children }: TicketDetailProps) {
         <div className="detail-badges">
           <StatusBadge status={ticket.status} />
           <PriorityTag priority={ticket.priority} />
-          {overdue ? <span className="chip-overdue">Quá hạn</span> : null}
+          {overdue ? (
+            <span className="chip-overdue">Quá hạn{lateBy !== null ? ` ${formatDuration(lateBy)}` : ''}</span>
+          ) : null}
         </div>
       </header>
 
@@ -90,6 +94,8 @@ export function TicketDetail({ ticket, now, children }: TicketDetailProps) {
         <h3>Lịch sử trạng thái</h3>
         <StatusTimeline events={events} loading={loading} error={error} />
       </section>
+
+      <CommentsSection ticketId={ticket.id} status={ticket.status} />
 
       {children}
     </article>

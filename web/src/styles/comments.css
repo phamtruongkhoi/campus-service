@@ -1,0 +1,79 @@
+/* Bình luận trong phiếu (5.5). Dùng lại .live, .role-tag (manage.css), .field, .notice, .skeleton. */
+.comments-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.comment-list {
+  display: flex;
+  max-height: 360px;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 12px;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.comment {
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.comment-mine {
+  border-color: var(--primary);
+}
+
+.comment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+
+.comment-author {
+  font-weight: 700;
+}
+
+.comment-time {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.comment-body {
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.comment-end {
+  height: 0;
+}
+
+.comment-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.comment-form .field {
+  width: 100%;
+}
+
+.field-box textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
