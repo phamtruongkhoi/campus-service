@@ -4,6 +4,7 @@ import { GuestOnly } from './auth/GuestOnly'
 import { RequireAuth } from './auth/RequireAuth'
 import { RequireRole } from './auth/RequireRole'
 import { AppShell } from './layout/AppShell'
+import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { ForgotPassword } from './pages/auth/ForgotPassword'
 import { Login } from './pages/auth/Login'
 import { Register } from './pages/auth/Register'
@@ -44,15 +45,7 @@ export default function App() {
               </Route>
 
               <Route element={<RequireRole role="admin" />}>
-                <Route
-                  path="/admin"
-                  element={
-                    <Placeholder
-                      title="Quản trị viên"
-                      note="Tổng quan, điều phối, lịch sử và quản trị sẽ làm ở các mục 5.2 đến 5.4."
-                    />
-                  }
-                />
+                <Route path="/admin" element={<AdminDashboard />} />
               </Route>
 
               <Route element={<RequireRole role="technician" />}>
