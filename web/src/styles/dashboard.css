@@ -1,0 +1,357 @@
+/* Tổng quan Admin: ô số liệu, biểu đồ, danh sách quá hạn. */
+
+/* Màu biểu đồ trạng thái. Sáng dùng thẳng token trạng thái §5f.
+   Tối: "Chờ tiếp nhận" sáng hơn token gốc để tách khỏi "Đã phân công" (kiểm bằng validate_palette:
+   khoảng cách màu 11.5 -> trên 15 theo thị lực bình thường). */
+:root {
+  --chart-open: var(--status-open);
+  --chart-assigned: var(--status-assigned);
+  --chart-in-progress: var(--status-in-progress);
+  --chart-resolved: var(--status-resolved);
+  --chart-closed: var(--status-closed);
+}
+
+:root[data-theme='dark'] {
+  --chart-open: #cbd5e1;
+}
+
+.page-wide {
+  max-width: 1100px;
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.page-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.live-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--outline);
+}
+
+.live-on .live-dot {
+  background: var(--status-resolved);
+}
+
+.link-button {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ---------- Ô số liệu ---------- */
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 18px;
+}
+
+.stat-tile-danger {
+  border-left: 4px solid var(--error);
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.stat-value {
+  font-size: 1.875rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.stat-note {
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+/* ---------- Biểu đồ ---------- */
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chart-empty,
+.chart-note {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.statusbar {
+  display: flex;
+  height: 40px;
+  gap: 2px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.statusbar-seg {
+  min-width: 6px;
+  flex-basis: 0;
+}
+
+.seg-open {
+  background: var(--chart-open);
+}
+
+.seg-assigned {
+  background: var(--chart-assigned);
+}
+
+.seg-in-progress {
+  background: var(--chart-in-progress);
+}
+
+.seg-resolved {
+  background: var(--chart-resolved);
+}
+
+.seg-closed {
+  background: var(--chart-closed);
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend-row {
+  display: grid;
+  grid-template-columns: 14px 1fr auto 3.5rem;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9375rem;
+}
+
+.legend-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.legend-count {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.legend-pct {
+  color: var(--muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.barlist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.barlist-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 32%) 1fr 2.5rem;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9375rem;
+}
+
+.barlist-name {
+  overflow-wrap: anywhere;
+}
+
+.barlist-track {
+  display: block;
+  height: 14px;
+  background: var(--background);
+  border-radius: 0 4px 4px 0;
+}
+
+.barlist-fill {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  background: var(--primary);
+  border-radius: 0 4px 4px 0;
+}
+
+.barlist-count {
+  text-align: right;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-table summary {
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chart-table table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.chart-table th,
+.chart-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--outline-variant);
+  text-align: left;
+  font-weight: 400;
+}
+
+.chart-table thead th {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* ---------- Phiếu quá hạn ---------- */
+.overdue-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.overdue-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.overdue-item:last-child {
+  border-bottom: 0;
+}
+
+.overdue-main {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.overdue-title {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.overdue-meta {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.overdue-badge {
+  padding: 4px 12px;
+  background: var(--error-container);
+  border-radius: var(--radius-chip);
+  color: var(--error);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ---------- Khung chờ tải ---------- */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--outline-variant) 25%,
+    var(--background) 50%,
+    var(--outline-variant) 75%
+  );
+  background-size: 200% 100%;
+  border-radius: var(--radius-card);
+  animation: shimmer 1.4s linear infinite;
+}
+
+.skeleton-tile {
+  height: 98px;
+}
+
+.skeleton-panel {
+  height: 240px;
+}
+
+.skeleton-tile,
+.skeleton-panel {
+  margin-bottom: 0;
+}
+
+[aria-busy='true'] > .chart-grid {
+  margin-top: 20px;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .barlist-row {
+    grid-template-columns: 1fr 2.5rem;
+  }
+
+  .barlist-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
