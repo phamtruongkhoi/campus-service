@@ -1,0 +1,183 @@
+/* Giao diện Sinh viên (6.1). Dùng lại .card, .chips, .chip, .split, .filters, .field, .notice, .btn. */
+
+/* ---------- Bảng tin ---------- */
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feed-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 16px;
+}
+
+.feed-top {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.feed-title {
+  font-weight: 700;
+}
+
+.feed-area {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.feed-meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 12px;
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+}
+
+.feed-meta dt {
+  color: var(--muted);
+}
+
+.feed-meta dd {
+  margin: 0;
+}
+
+/* ---------- Tạo phiếu ---------- */
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+.create-form .btn {
+  align-self: flex-start;
+}
+
+.field-label {
+  font-weight: 600;
+}
+
+.preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.preview {
+  position: relative;
+  width: 110px;
+  height: 110px;
+}
+
+.preview img {
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--outline-variant);
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.preview-remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--outline);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1.125rem;
+  line-height: 1;
+}
+
+.preview-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- Nghiệm thu ---------- */
+.acceptance {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--primary);
+  border-radius: 12px;
+}
+
+.acceptance-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.acceptance-form .field {
+  width: 100%;
+}
+
+.star-picker {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.star {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.star.on {
+  color: var(--primary);
+}
+
+.star:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.star-caption {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.field-box textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  resize: vertical;
+}
+
+a.btn {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}

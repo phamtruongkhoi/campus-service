@@ -14,7 +14,9 @@ export function roleHomePath(role: Role): string {
 /** Menu theo vai trò. */
 export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   student: [
-    { to: '/student', label: 'Trang chủ', end: true },
+    { to: '/student', label: 'Bảng tin', end: true },
+    { to: '/student/create', label: 'Tạo phiếu' },
+    { to: '/student/tickets', label: 'Phiếu của tôi' },
     { to: '/profile', label: 'Hồ sơ' },
   ],
   admin: [
