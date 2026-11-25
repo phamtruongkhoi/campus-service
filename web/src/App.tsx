@@ -17,6 +17,9 @@ import { Login } from './pages/auth/Login'
 import { Register } from './pages/auth/Register'
 import { VerifyOtp } from './pages/auth/VerifyOtp'
 import { Home } from './pages/Home'
+import { StudentCreate } from './pages/student/StudentCreate'
+import { StudentFeed } from './pages/student/StudentFeed'
+import { StudentTickets } from './pages/student/StudentTickets'
 import { Placeholder } from './pages/Placeholder'
 import { Profile } from './pages/Profile'
 
@@ -40,15 +43,9 @@ export default function App() {
               <Route path="/profile" element={<Profile />} />
 
               <Route element={<RequireRole role="student" />}>
-                <Route
-                  path="/student"
-                  element={
-                    <Placeholder
-                      title="Sinh viên"
-                      note="Bảng tin, tạo phiếu, lịch sử và nghiệm thu sẽ làm ở mục 6.1."
-                    />
-                  }
-                />
+                <Route path="/student" element={<StudentFeed />} />
+                <Route path="/student/create" element={<StudentCreate />} />
+                <Route path="/student/tickets" element={<StudentTickets />} />
               </Route>
 
               <Route element={<RequireRole role="admin" />}>
