@@ -1,0 +1,82 @@
+/* Giao diện Kỹ thuật viên (6.2). Dùng lại .card, .panel, .tile-grid, .chip-overdue, .role-tag, .ticket-title. */
+
+.section-title {
+  margin: 8px 0;
+  font-size: 1.125rem;
+}
+
+.radar-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.radar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+.radar-mine {
+  border-color: var(--primary);
+}
+
+.radar-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+}
+
+.radar-head h3 {
+  margin: 0;
+}
+
+.radar-tickets {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.radar-ticket {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1px solid var(--outline-variant);
+}
+
+.radar-ticket-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.job-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+.job-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .radar-groups {
+    grid-template-columns: 1fr;
+  }
+}

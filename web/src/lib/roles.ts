@@ -28,7 +28,9 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { to: '/profile', label: 'Hồ sơ' },
   ],
   technician: [
-    { to: '/technician', label: 'Công việc', end: true },
+    { to: '/technician', label: 'Radar', end: true },
+    { to: '/technician/jobs', label: 'Công việc' },
+    { to: '/technician/history', label: 'Lịch sử' },
     { to: '/profile', label: 'Hồ sơ' },
   ],
 }
