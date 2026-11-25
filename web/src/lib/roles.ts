@@ -11,7 +11,7 @@ export function roleHomePath(role: Role): string {
   return `/${role}`
 }
 
-/** Menu theo vai trò. Các mục sau (5.2 trở đi) sẽ được thêm dần vào đây. */
+/** Menu theo vai trò. Các mục sau (5.4 trở đi) sẽ được thêm dần vào đây. */
 export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   student: [
     { to: '/student', label: 'Trang chủ', end: true },
@@ -19,6 +19,8 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   ],
   admin: [
     { to: '/admin', label: 'Tổng quan', end: true },
+    { to: '/admin/dispatch', label: 'Điều phối' },
+    { to: '/admin/history', label: 'Lịch sử' },
     { to: '/profile', label: 'Hồ sơ' },
   ],
   technician: [

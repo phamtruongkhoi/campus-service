@@ -5,6 +5,8 @@ import { RequireAuth } from './auth/RequireAuth'
 import { RequireRole } from './auth/RequireRole'
 import { AppShell } from './layout/AppShell'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
+import { AdminDispatch } from './pages/admin/AdminDispatch'
+import { AdminHistory } from './pages/admin/AdminHistory'
 import { ForgotPassword } from './pages/auth/ForgotPassword'
 import { Login } from './pages/auth/Login'
 import { Register } from './pages/auth/Register'
@@ -46,6 +48,8 @@ export default function App() {
 
               <Route element={<RequireRole role="admin" />}>
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/dispatch" element={<AdminDispatch />} />
+                <Route path="/admin/history" element={<AdminHistory />} />
               </Route>
 
               <Route element={<RequireRole role="technician" />}>
