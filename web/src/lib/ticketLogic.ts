@@ -26,6 +26,13 @@ export function isOverdue(ticket: Pick<Ticket, 'status' | 'eta'>, now: number): 
   return due !== null && due < now
 }
 
+/** Số mili giây đã quá hạn so với ETA; null nếu không quá hạn. */
+export function overdueMillis(ticket: Pick<Ticket, 'status' | 'eta'>, now: number): number | null {
+  if (!isOverdue(ticket, now)) return null
+  const due = parseTime(ticket.eta)
+  return due === null ? null : now - due
+}
+
 /** Thời gian xử lý = resolved_at - created_at; null nếu chưa khắc phục hoặc dữ liệu lệch. */
 export function processingMillis(ticket: Pick<Ticket, 'resolved_at' | 'created_at'>): number | null {
   const end = parseTime(ticket.resolved_at)
