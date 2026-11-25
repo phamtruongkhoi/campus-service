@@ -6,10 +6,11 @@ export function technicianName(profile: Pick<Profile, 'full_name' | 'email'>): s
   return profile.full_name?.trim() || profile.email || '(không rõ tên)'
 }
 
-/** Danh sách kỹ thuật viên để phân công (Admin đọc được mọi hồ sơ theo policy profiles_select). */
+/** Danh sách kỹ thuật viên (Admin đọc được mọi hồ sơ theo policy profiles_select). */
 export function useTechnicians() {
   const [technicians, setTechnicians] = useState<Profile[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
@@ -21,16 +22,17 @@ export function useTechnicians() {
         if (cancelled) return
         if (queryError) {
           setError(`Không tải được danh sách kỹ thuật viên: ${queryError.message}`)
-          return
+        } else {
+          const list = (data ?? []) as Profile[]
+          list.sort((a, b) => technicianName(a).localeCompare(technicianName(b), 'vi'))
+          setTechnicians(list)
         }
-        const list = (data ?? []) as Profile[]
-        list.sort((a, b) => technicianName(a).localeCompare(technicianName(b), 'vi'))
-        setTechnicians(list)
+        setLoading(false)
       })
     return () => {
       cancelled = true
     }
   }, [])
 
-  return { technicians, error }
+  return { technicians, error, loading }
 }

@@ -7,6 +7,8 @@ import { AppShell } from './layout/AppShell'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { AdminDispatch } from './pages/admin/AdminDispatch'
 import { AdminHistory } from './pages/admin/AdminHistory'
+import { AdminTechnicianDetail } from './pages/admin/AdminTechnicianDetail'
+import { AdminTechnicians } from './pages/admin/AdminTechnicians'
 import { ForgotPassword } from './pages/auth/ForgotPassword'
 import { Login } from './pages/auth/Login'
 import { Register } from './pages/auth/Register'
@@ -50,6 +52,8 @@ export default function App() {
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/dispatch" element={<AdminDispatch />} />
                 <Route path="/admin/history" element={<AdminHistory />} />
+                <Route path="/admin/technicians" element={<AdminTechnicians />} />
+                <Route path="/admin/technicians/:id" element={<AdminTechnicianDetail />} />
               </Route>
 
               <Route element={<RequireRole role="technician" />}>
