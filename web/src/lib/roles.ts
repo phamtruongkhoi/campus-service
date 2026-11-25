@@ -21,6 +21,7 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { to: '/admin', label: 'Tổng quan', end: true },
     { to: '/admin/dispatch', label: 'Điều phối' },
     { to: '/admin/history', label: 'Lịch sử' },
+    { to: '/admin/technicians', label: 'Kỹ thuật viên' },
     { to: '/profile', label: 'Hồ sơ' },
   ],
   technician: [
