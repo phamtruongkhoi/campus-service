@@ -8,6 +8,7 @@ import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { AdminDispatch } from './pages/admin/AdminDispatch'
 import { AdminHistory } from './pages/admin/AdminHistory'
 import { AdminManage } from './pages/admin/manage/AdminManage'
+import { AutoAssignTab } from './pages/admin/manage/AutoAssignTab'
 import { CatalogTab } from './pages/admin/manage/CatalogTab'
 import { UsersTab } from './pages/admin/manage/UsersTab'
 import { AdminTechnicianDetail } from './pages/admin/AdminTechnicianDetail'
@@ -61,6 +62,7 @@ export default function App() {
                   <Route path="areas" element={<CatalogTab key="area" kind="area" />} />
                   <Route path="categories" element={<CatalogTab key="category" kind="category" />} />
                   <Route path="users" element={<UsersTab />} />
+                  <Route path="auto" element={<AutoAssignTab />} />
                 </Route>
               </Route>
 

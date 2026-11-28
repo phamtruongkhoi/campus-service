@@ -1,0 +1,114 @@
+/* Tự động phân công (6.A). Dùng lại .panel, .card, .btn, .notice, .manage-*, .chart-note. */
+
+.avail {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.avail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-chip);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.avail-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.avail-btn.avail-on {
+  border-color: var(--status-resolved);
+  background: var(--status-resolved-container);
+  color: var(--status-resolved-on);
+}
+
+.avail-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.avail-on .avail-dot {
+  background: var(--status-resolved);
+}
+
+.avail-msg {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.avail-err {
+  color: var(--error);
+}
+
+.aa-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 520px;
+  margin: 12px 0;
+}
+
+.check-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.check-row input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex: none;
+}
+
+.aa-summary {
+  margin: 4px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-toggle {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--outline);
+  border-radius: var(--radius-chip);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.chip-toggle[aria-pressed='true'] {
+  border-color: var(--primary);
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  font-weight: 600;
+}
+
+.chip-toggle:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
