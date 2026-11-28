@@ -5,6 +5,7 @@ const TABS = [
   { to: '/admin/manage/areas', label: 'Khu vực' },
   { to: '/admin/manage/categories', label: 'Loại lỗi' },
   { to: '/admin/manage/users', label: 'Người dùng' },
+  { to: '/admin/manage/auto', label: 'Tự động' },
 ]
 
 /** Admin - Quản trị (5.4): khung có ba tab. */

@@ -3,6 +3,7 @@ import '../../styles/tickets.css'
 import '../../styles/radar.css'
 import { useAuth } from '../../auth/useAuth'
 import { Button } from '../../components/Button'
+import { AvailabilityToggle } from '../../components/technician/AvailabilityToggle'
 import { Notice } from '../../components/Notice'
 import { JobActions } from '../../components/technician/JobActions'
 import { TicketDetail } from '../../components/tickets/TicketDetail'
@@ -28,6 +29,7 @@ export function TechJobs() {
       <div className="page-head">
         <h1 className="page-title">Công việc của tôi</h1>
         <div className="page-head-actions">
+          <AvailabilityToggle />
           <span className={live ? 'live live-on' : 'live'} role="status">
             <span className="live-dot" aria-hidden="true" />
             {live ? 'Trực tiếp' : 'Đang kết nối'}

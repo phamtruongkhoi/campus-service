@@ -5,6 +5,7 @@ import '../../styles/radar.css'
 import { useAuth } from '../../auth/useAuth'
 import { BarList } from '../../components/charts/BarList'
 import { Button } from '../../components/Button'
+import { AvailabilityToggle } from '../../components/technician/AvailabilityToggle'
 import { Notice } from '../../components/Notice'
 import { PriorityTag } from '../../components/PriorityTag'
 import { StatTile } from '../../components/StatTile'
@@ -31,6 +32,7 @@ export function TechRadar() {
       <div className="page-head">
         <h1 className="page-title">Radar sự cố</h1>
         <div className="page-head-actions">
+          <AvailabilityToggle />
           <span className={live ? 'live live-on' : 'live'} role="status">
             <span className="live-dot" aria-hidden="true" />
             {live ? 'Trực tiếp' : 'Đang kết nối'}
